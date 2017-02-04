@@ -1,0 +1,421 @@
+a {
+	color: #fff;
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+
+body {
+	color: #fff;
+	background-color: #000;
+	margin: 0;
+}
+form {
+	margin: 0;
+	padding: 0;
+}
+form fieldset {
+	border: 0;
+	padding: 0;
+}
+form fieldset button {
+	font-family: Courier, monospace;
+}
+form fieldset label {
+	margin-bottom: 8px;
+	float: left;
+	font-family: Courier, monospace;
+	width: 225px;
+}
+form fieldset input.text,
+form fieldset input.submit,
+form fieldset input.file,
+form fieldset select,
+form fieldset textarea {
+	font-family: Courier, monospace;
+	font-size: 16px;
+/*	float: left; */
+}
+
+form fieldset input.text {
+	width: 400px;
+	padding: 1px 5px 1px 5px;
+}
+
+form fieldset select {
+	padding: 1px 5px 1px 5px;
+	padding: 0;
+}
+
+form fieldset textarea {
+	width: 400px;
+	height: 100px;
+	padding: 2px 5px 2px 5px;
+}
+
+form fieldset input.submit {
+	margin-left: 250px;
+}
+form fieldset a {
+	float: left;
+	margin-left: 125px;
+}
+form fieldset br {
+	clear: both;
+}
+form fieldset a {
+	
+}
+
+form fieldset .row {
+        padding-top: 2px;
+        padding-bottom: 2px;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+form fieldset .row:nth-child(even) {
+        background-color: #151515;
+/*	background-color: #c0c0c0; */
+}
+
+h2 {
+	font-family: Courier, monospace;
+	padding-left: 40px;
+	padding-right: 40px;
+	margin-top: 0;
+	margin-bottom: 0;
+	background: #0085CF;
+	color: #fff;
+}
+
+h2 div.action {
+	float: right;
+	font-size: 75%;
+}
+
+h4 {
+	text-align: center;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+ul {
+	padding: 0px;
+	border-bottom: 2px solid #000;
+	background-color: #000;
+	border-bottom: 7px solid #003653;
+	margin-bottom: 0;
+}
+
+ul li {
+	color: #fff;
+	margin-left: 5px;
+	margin-right: 5px;
+	font-family: Courier, monospace;
+	font-size: 16px;
+	display: inline-block;
+	line-height: 23px;
+}
+ul li a {
+	font-size: 16px;
+	color: #fff;
+	padding-top: 5px;
+	display: inline-block;
+}
+ul li form {
+	display: inline;
+}
+ul li form fieldset {
+	display: inline;
+	border: none;
+	padding: 0;
+	margin: 0;
+}
+ul li form fieldset label {
+	float: left;
+	width: auto;
+	margin-left: 5px;
+	margin-bottom: 0;
+	margin:0;
+	font-size: 16px;
+	display: inline-block;
+}
+
+ul li form fieldset input.submit {
+	float: left;
+	margin-left: 5px;
+}
+
+ul li form fieldset input.text {
+	margin:0;
+	margin-left: 5px;
+	font-size: 16px;
+	width: auto;
+	border: 1px solid #000;
+	color: #000;
+	float: left
+}
+
+ul li form fieldset select {
+	margin:0;
+	margin-left: 5px;
+	font-size: 16px;
+	float: left;
+}
+
+table {
+	border: 1px solid #000;
+	border-collapse: collapse;
+	width: 100%;
+}
+table tbody tr td {
+	vertical-align: top;
+   	border: 1px solid #000;
+}
+table thead tr th {
+	padding: 10px;
+	background-color: transparent;
+	font-family: Courier, monospace; 
+	border: 1px solid #000;
+}
+table tbody tr:nth-child(even) td {
+
+}
+
+
+#category {
+	display: none;
+}
+
+
+
+table thead tr th {
+	background-color: #0085CF;
+	color: #fff;
+	padding: 0 10px 0 10px;
+}
+
+table thead tr th.image {
+	width: 320px;
+	padding-left: 0;
+	padding-right: 0;
+}
+
+table thead tr th.id {
+	width: 35px;
+}
+
+table thead tr th.counter {
+	width: 70px;
+}
+
+table thead tr th.manage {
+	width: 70px;
+}
+
+table tbody tr td {
+	padding: 5px;
+	font-family: Courier, monospace;
+}
+
+table tbody tr:nth-child(even) td {
+	background-color: #151515;
+}
+
+table tbody tr td.description {
+	padding: 0;
+}
+
+table tbody tr td.description h4 {
+	padding: 5px;
+}
+
+table tbody tr td.description p {
+	padding: 5px;
+}
+
+table tbody tr td.progressbar,
+table tfoot tr td.progressbar {
+	margin: 0;
+	padding: 0;
+}
+
+table tbody tr td.manage {
+	text-align: center;
+}
+
+table tbody tr:hover td {
+
+}
+
+table tbody tr td.image {
+	padding: 10px;
+	text-align: center;
+}
+
+table tbody tr td.image div.image {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;	
+	/* padding: 10px 10px 63px 10px; */
+	position: relative;
+	width: 319px;	
+}
+
+table tbody tr td.image div.image img {
+	border: 1px solid #000;
+}
+
+table tbody tr td.image div.image div.id {
+	bottom: 10px;
+	font-family: Arial, sans-serif;
+	left: 0;
+	position: absolute;
+	text-align: center;
+	width: 100%;
+	z-index: 100;
+}
+
+
+table tbody tr td.image div.image div.id a {
+}
+
+table tbody tr td.image div.image div.id a:hover {
+	text-decoration: none;
+}
+
+table tbody tr:hover td.image div.image div.id {
+	opacity: 0.8;
+}
+
+table tbody tr td h4 {
+	margin: 0;
+	font-size: 16px;
+}
+
+table tfoot tr td {
+	margin: 0;
+	font-size: 12px;
+	background-color: #000;
+	font-family: Courier, monospace;	
+	padding: 5px;
+	border-top: 2px solid #000;
+	color: #fff;
+	
+}
+
+p {
+	padding-left: 40px;
+	padding-right: 40px;
+	font-family: Courier, monospace;
+}
+p.actions {
+	text-align: right;
+}
+p.browse {
+	text-align: center;
+	font-family: Courier, monospace;
+	font-size: 16px;
+}
+
+p.subdata {
+	padding-top: 7px;
+	border-top: 1px solid #000;
+}
+
+div.status {
+	padding: 3px;
+	color: #000;
+	display: block;
+        text-align: center;
+}
+
+div.status.own,
+div.status.ownsell {
+	background-color: #c9ffc9;
+	border: 1px solid #00ff00;
+
+}
+
+div.status.sold,
+div.status.givenaway,
+div.status.dumped {
+	border: 1px solid red;
+	background-color: #ffc9c9;
+}
+
+div.inuse4 {
+	background-color: #c9ffc9;
+	border: 1px solid #00ff00;	
+}
+
+div.inuse3 {
+	background-color: #c9ffc9;
+	border: 1px solid #00ff00;	
+}
+
+div.inuse2 {
+	background-color: #FFC824;
+	border: 1px solid #D1A41D;	
+}
+
+div.inuse1 {
+	border: 1px solid red;
+	background-color: #ffc9c9;
+}
+
+div.inuse0 {
+	border: 1px solid #808080;
+	background-color: #f0f0f0;
+}
+
+div.inuse {
+	color: #000;
+	display: block;
+	margin-top: 3px;
+	text-align: center;
+	padding: 3px;
+}
+
+div.inuse_progressbars {
+	display: block;
+	border: 1px solid #000;
+	height: 27px;
+}
+
+div.inuse_progressbars div {
+	height: 100%;
+	float: left;
+	overflow: hidden;
+	text-align: center;
+	font-size: 10px;
+	color: #000;
+	line-height: 27px;
+}
+
+div.inuse_progressbars .inuse_progressbar4 {
+	background-color: #00ff00;
+	color: #008B00;
+}
+
+div.inuse_progressbars .inuse_progressbar3 {
+	background-color: #c9ffc9;
+	color: #5C935C;
+}
+
+
+div.inuse_progressbars .inuse_progressbar2 {
+	background-color: #FFC824;
+	color: #AB8103;
+}
+
+
+div.inuse_progressbars .inuse_progressbar1 {
+	background-color: #ff9292;
+	color: #FD0000;
+}
+
+div.inuse_progressbars .inuse_progressbar0 {
+	background-color: #f0f0f0;
+}
