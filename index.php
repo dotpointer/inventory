@@ -26,6 +26,7 @@
 	# 2016-03-27 18:41:34 - adding images to locations
 	# 2017-01-26 21:34:23 - adding materials column
 	# 2017-02-01 18:31:36 - dotpointer domain edit
+	# 2017-04-12 17:08:09 - adding quick button 100% cotton for material
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -223,6 +224,7 @@
 			<div class="row">
 				<label for="materials">Material:</label>
 				<input class="text" type="text" name="materials" value="<?php echo isset($item['materials']) ? $item['materials'] : ''?>">
+				<button id="button_material_100_cotton">100% bomull</button>
 			</div>
 			<div class="row">
 				<label for="watt">Watt:</label>
@@ -325,7 +327,7 @@
 					<option value="index"<?php echo $view==='edit_item' ? ' selected="selected"' : ''?>>Visa redigerad inventarie</option>
 					<option value="edit_item"<?php echo $view==='edit_item' ? ' selected="selected"' : ''?>>Ny inventarie</option>
 				</select>
-			</div>			
+			</div>
 			<input class="submit" type="submit" name="submit" value="Spara">
 		</fieldset>
 	</form>
@@ -348,7 +350,7 @@
 			<input type="hidden" name="view" value="locations">
 			<input type="hidden" name="id_locations" value="<?php echo isset($location['id']) ? $location['id'] : ''?>">
 			<input type="hidden" name="MAX_FILE_SIZE" value="10737418240" />
-			
+
 			<div class="row">
 				<label for="title">Titel</label><input class="text" type="text" name="title" value="<?php echo isset($location['title']) ? $location['title'] : ''?>"><br>
 			</div>
@@ -362,7 +364,7 @@
 				<a href="?view=file&amp;id_files=<?php echo $item['id_files']?>"><img src="?view=file&amp;type=thumbnail&amp;id_files=<?php echo $item['id_files']?>"></a><br><br>
 				<input type="hidden" name="id_files" value="<?php echo isset($item['price']) ? $item['id_files'] : ''?>">
 <?php 		} ?>
-			</div>			
+			</div>
 			<div class="row">
 				<input class="submit" type="submit" name="submit" value="Spara">
 			</div>
@@ -391,7 +393,7 @@
 
 		<p class="browse">
 			<a href="?view=index&amp;find=<?php echo $find?>&amp;id_locations=<?php echo $id_locations?>&amp;id_categories_find=<?php echo $id_categories_find?>&amp;status_find=<?php echo $status_find?>&amp;start=<?php echo ($start-$limit) > 0 ? $start-$limit : 0 ?>&amp;limit=<?php echo $limit?>">&lt;&lt; <?php echo $start ?></a>
-			 - 
+			 -
 			<a href="?view=index&amp;find=<?php echo $find?>&amp;id_locations=<?php echo $id_locations?>&amp;id_categories_find=<?php echo $id_categories_find?>&amp;status_find=<?php echo $status_find?>&amp;start=<?php echo $start+$limit?>&amp;limit=<?php echo $limit?>"><?php echo count($items) < (int)$start+(int)$limit && $start < count($items) ? count($items) : (int)$start+(int)$limit;  ?> &gt;&gt;</a>
 
 		</p>
@@ -475,7 +477,7 @@
 					</td>
 					<td>
 						<div class="status <?php echo $statuses[$v['status']]['name']; ?>"><?php echo $statuses[$v['status']]['text']; ?></div>
-						
+
 						<div class="inuse inuse<?php echo $v['inuse']; ?>"><?php echo $usage[$v['inuse']]; ?></div>
 						<br><br>
 
@@ -523,7 +525,7 @@
 				$x += $v['item_amount'];
 			}
 ?>
-			
+
 			<tbody>
 <?php 		# walk categories one by one
 			$total_amounts = array();
@@ -553,11 +555,11 @@
 				# is the item total above zero, but no available - then there are no active items, go next
 				# note that this differ from a location that has no items at all - it is unused
 				if ($total > 0 && (int)$v['item_amount'] < 1) continue;
-				
+
 				if ($total < 1) continue;
-				
+
 				# var_dump($v['id'], $total, (int)$v['item_amount']);
-				
+
 ?>
 				<tr>
 					<td>
@@ -591,7 +593,7 @@
 			} # eof-foreach-categories
 ?>
 			</tbody>
-			
+
 <tfoot>
 				<tr>
 					<td>Totalt</td>
@@ -610,7 +612,7 @@
 					</td>
 					<td></td>
 				</tr>
-			</tfoot>			
+			</tfoot>
 		</table>
 <?php
 			break;
@@ -645,7 +647,7 @@
 					<td></td>
 					<td></td>
 					<td><?php echo $x; ?> st</td>
-					<td>						
+					<td>
 					<td></td>
 				</tr>
 			</tfoot>
@@ -683,10 +685,10 @@
 						?><a href="?view=file&amp;id_files=<?php echo $v['id_files']?>"><img src="?view=file&amp;type=thumbnail&amp;id_files=<?php echo $v['id_files']?>"></a><?php
 					} else {
 						?><img src="images/nophoto_320x240.png"><?php
-					}					
+					}
 					?>
 						</div>
-					</td>					
+					</td>
 					<td>
 						<a href="?view=index&amp;id_locations=<?php echo $v['id'] ?>"><?php echo $v['title'] ?></a>
 					</td>
