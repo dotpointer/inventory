@@ -27,6 +27,7 @@
 	# 2017-01-26 21:34:23 - adding materials column
 	# 2017-02-01 18:31:36 - dotpointer domain edit
 	# 2017-04-12 17:08:09 - adding quick button 100% cotton for material
+	# 2017-05-13 15:28:45 - adding weight
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -63,6 +64,7 @@
 	$type = isset($_REQUEST['type']) ? $_REQUEST['type'] : false;
 	$watt = isset($_REQUEST['watt']) ? $_REQUEST['watt'] : false;
 	$watt_max = isset($_REQUEST['watt_max']) ? $_REQUEST['watt_max'] : false;
+	$weight = isset($_REQUEST['weight']) ? $_REQUEST['weight'] : false;
 	$view = isset($_REQUEST['view']) ? $_REQUEST['view'] : false;
 
 	# action management
@@ -233,6 +235,10 @@
 			<div class="row">
 				<label for="watt_max">Watt max:</label>
 				<input class="text" type="text" name="watt_max" value="<?php echo isset($item['watt_max']) ? $item['watt_max'] : ''?>">
+			</div>
+			<div class="row">
+				<label for="weight">Watt max:</label>
+				<input class="text" type="text" name="weight" value="<?php echo isset($item['weight']) ? $item['weight'] : ''?>">
 			</div>
 			<div class="row">
 				<label for="source">Fått från:</label>
@@ -437,6 +443,11 @@
 							<?php if ($v['watt']) { ?>
 							<br>
 							Watt: <?php echo $v['watt']?>-<?php echo $v['watt_max']?>
+							<?php } ?>
+
+							<?php if ($v['weight']) { ?>
+							<br>
+							Vikt: <?php echo $v['weight']?>-<?php echo $v['weight']?>
 							<?php } ?>
 
 							<?php if ($v['batteries_aa']) { ?>
