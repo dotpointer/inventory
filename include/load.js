@@ -25,6 +25,12 @@
 			return a.join('-');
 	};
 
+	jQuery.extend({
+		postJSON: function (url, data, callback) {
+			return jQuery.post(url, data, callback, "json");
+		}
+	});
+
 	$(window.document).ready(function() {
 
 		switch (i.view) {
@@ -92,6 +98,31 @@
 
 
 				$('input[name="title"]').focus();
+
+				break;
+			case 'index':
+
+				$('form.form_add_item_to_packlist').on('submit', function(e) {
+
+					$.postJSON("?action=insert_update_relations_packlists_items&format=json", {
+						id_items: $(this).find('input[name="id_items"]').val(),
+						id_packlists: $(this).find('select:first').val()
+					}, function(data) {
+						// when done, show result list, forward result data
+						$(this).find('.status').remove();
+
+						console.log($(this).find('input[type="submit"]'));
+						$(this).find('input[type="submit"]:first').after(
+							$('<span>')
+								.addClass('status')
+								.text('Tillagd')
+						);
+					}.bind(this));
+
+					e.preventDefault();
+					return false;
+				});
+
 
 				break;
 		}

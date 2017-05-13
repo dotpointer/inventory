@@ -17,6 +17,7 @@
 # 2016-03-27 18:41:06 - adding images to locations
 # 2017-01-26 21:32:04 - adding materials column
 # 2017-05-13 15:30:51 - adding weight
+# 2017-05-13 17:50:02 - adding packlist
 
 if (!isset($view)) die();
 
@@ -105,6 +106,23 @@ switch ($view) {
 			if (count($locations)) {
 				# then take the first of it
 				$location = $locations[0];
+			}
+		}
+		break;
+
+	case 'edit_packlist': # to edit a packlist
+		if (!is_logged_in()) break;
+
+		$packlist = false;
+
+		# is item id specified?
+		if ($id_packlists) {
+			# try to get that item
+			$packlists = db_query($link, 'SELECT * FROM packlists WHERE id="'.dbres($link, $id_packlists).'"');
+			# was there any matching items?
+			if (count($packlists)) {
+				# then take the first of it
+				$packlist = $packlists[0];
 			}
 		}
 		break;
@@ -374,6 +392,8 @@ switch ($view) {
 			$items[$k]['locations'] = $locations;
 		}
 
+		$packlists = db_query($link, 'SELECT * FROM packlists');
+
 	#	die($sql);
 		break;
 
@@ -403,6 +423,60 @@ switch ($view) {
 		# print file
 		readfile($fullpath);
 		die();
+
+	case 'packlist': # to display a category
+		if (!is_logged_in()) break;
+		$packlists = db_query($link, 'SELECT * FROM packlists WHERE id="'.dbres($link, $id_packlists).'"');
+
+		if (!count($packlists)) die('Packlist not found');
+		$packlist = reset($packlists);
+
+		$items = db_query($link, '
+			SELECT
+				i.id AS id_items,
+				rpi.id AS id_relations_packlists_items,
+				i.title,
+				i.weight
+			FROM
+				items as i,
+				relations_packlists_items AS rpi
+			WHERE
+				i.id = rpi.id_items
+				AND
+				rpi.id_packlists = "'.dbres($link, $id_packlists).'"');
+
+		break;
+
+	case 'packlists': # to display a category
+		if (!is_logged_in()) break;
+
+		$sql = 'SELECT
+					p.id,
+					p.title,
+					0 AS item_amount,
+					0 AS weight
+				FROM
+					packlists AS p
+					LEFT JOIN (
+						SELECT
+							id_packlists,
+							COUNT(i.id) AS item_amount,
+							SUM(i.weight) AS weight
+						FROM
+							items AS i,
+							relations_packlists_items AS rpi
+						WHERE
+							i.id = rpi.id_items
+						GROUP BY
+							rpi.id_packlists
+					) AS irpi ON irpi.id_packlists = p.id
+				ORDER BY
+					p.title
+				';
+
+		$packlists = db_query($link, $sql);
+		break;
+
 }
 
 ?>

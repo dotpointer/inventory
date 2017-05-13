@@ -15,16 +15,23 @@
 	# 2016-09-22 22:09:48 - base 2 to base 3
 	# 2017-02-01 18:32:42 - dotpointer domain edit
 	# 2017-05-13 15:28:36 - adding weight
+	# 2017-05-13 17:49:40 - adding packlist
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');
 	require_once('config.php');
 	require_once('base3.php');
 
-	# CREATE DATABASE inventory;	
+	# CREATE DATABASE inventory;
 	# CREATE TABLE items (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, id_categories INT NOT NULL, id_files INT NOT NULL DEFAULT 0, title TINYTEXT NOT NULL, description TEXT NOT NULL, batteries_aa INT NOT NULL DEFAULT 0, batteries_aaa INT NOT NULL DEFAULT 0, batteries_c INT NOT NULL DEFAULT 0, batteries_d INT NOT NULL DEFAULT 0, batteries_e INT NOT NULL DEFAULT 0, batteries_3r12 INT NOT NULL DEFAULT 0, materials tinytext not null, watt_max float, weight bigint not null default 0, price FLOAT NOT NULL, source TINYTEXT NOT NULL, location TINYTEXT NOT NULL, status INT NOT NULL DEFAULT 1, inuse INT NOT NULL, acquired DATETIME NOT NULL, disposed DATETIME NOT NULL, created DATETIME NOT NULL, updated DATETIME NOT NULL);
 	# CREATE TABLE categories (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, title TINYTEXT NOT NULL);
-	
+
+	#  CREATE TABLE packlists (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,	title TINYTEXT NOT NULL, updated DATETIME NOT NULL,	created DATETIME NOT NULL);
+
+	# CREATE TABLE relations_packlists_items (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, id_packlists INT NOT NULL, id_items INT NOT NULL, created DATETIME NOT NULL);
+
+
+
 	# CREATE TABLE inventory.users(id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, id_visum INT NOT NULL UNIQUE, nickname VARCHAR(16) NOT NULL, gender enum('0','1','2') NOT NULL, birth DATETIME NOT NULL, updated DATETIME NOT NULL, created DATETIME NOT NULL);
 ***REMOVED***
 ***REMOVED***
@@ -44,7 +51,7 @@
 
 	$link = db_connect();
 	# mysql_set_charset('utf8', $link);
-	
+
 	if (!function_exists('shutdown_function')) {
 		# a function to run when the script shutdown
 		function shutdown_function($link) {
@@ -55,7 +62,7 @@
 	}
 
 	# register a shutdown function
-	register_shutdown_function('shutdown_function', $link);	
+	register_shutdown_function('shutdown_function', $link);
 
 	define('STATUS_OWN', 1);
 	define('STATUS_OWNSELL', 2);
@@ -64,15 +71,15 @@
 	define('STATUS_DUMPED', 5);
 	define('STATUS_WISHED', 6);
 	define('STATUS_WISHED_SKIPPED', 7);
-	
+
 	$statuses = array(
 		STATUS_OWN => array('text' => 'Äger', 'name' => 'own'),
-		STATUS_OWNSELL => array('text' => 'Säljes', 'name' => 'ownsell'),		
+		STATUS_OWNSELL => array('text' => 'Säljes', 'name' => 'ownsell'),
 		STATUS_SOLD => array('text' => 'Såld', 'name' => 'sold'),
 		STATUS_GIVENAWAY =>  array('text' => 'Bortskänkt', 'name' => 'givenaway'),
 		STATUS_DUMPED =>  array('text' => 'Kastad', 'name' => 'dumped'),
-		STATUS_WISHED => array('text' => 'Önskad', 'name' => 'wished'),	
-		STATUS_WISHED_SKIPPED => array('text' => 'Önskad - Dumpad', 'name' => 'wishedskipped'),	
+		STATUS_WISHED => array('text' => 'Önskad', 'name' => 'wished'),
+		STATUS_WISHED_SKIPPED => array('text' => 'Önskad - Dumpad', 'name' => 'wishedskipped'),
 	);
 
 	define('USAGE_FREQUENT', 4);
@@ -86,14 +93,14 @@
 		USAGE_SOMETIMES => 'Ibland',
 		USAGE_SELDOM => 'Sällan',
 		USAGE_NEVER => 'Inte',
-		USAGE_UNKNOWN => 'Okänt'		
+		USAGE_UNKNOWN => 'Okänt'
 	);
-	
+
 
 
 	define('THUMBNAIL_DIR', DATA_DIR.'inventory/thumbnails/');
 	define('FILE_DIR', DATA_DIR.'inventory/originals/');
-	
+
 	define('MAGICK_PATH','/usr/bin/');
 
 	# check if this is production or development
@@ -104,7 +111,7 @@
 		# development id
 		define('ID_VISUM', false); # our site-id in visum
 	}
-	
+
 	function is_logged_in() {
 		if (!isset($_SESSION[SITE_SHORTNAME])) {
 			return false;
@@ -128,16 +135,16 @@
 		}
 		return $_SESSION[SITE_SHORTNAME]['user'][$field];
 	}
-	
+
 	function print_login() {
 ?>
 <p class="login">
 	<a href="http://www.dotpointer.tk/?section=visum&id_sites=<?php echo ID_VISUM?>">Inloggning krävs, klicka här för att logga in.<a/>
 </p>
 <?php
-		return true;	
+		return true;
 	}
-	
+
 	if (!file_exists(MAGICK_PATH.'convert')) {
 		die('ImageMagick is not installed.');
 	}

@@ -15,6 +15,7 @@
 # 2016-09-22 22:09:08 - mysql
 # 2017-01-26 21:31:29 - adding materials column
 # 2017-05-13 15:32:31 - adding weight
+# 2017-05-13 17:49:51 - adding packlist
 
 if (!isset($action)) die();
 
@@ -519,6 +520,90 @@ switch ($action) {
 				$view = 'index';
 				break;
 		}
+
+		break;
+
+	case 'insert_update_packlist': # to insert or update a packlist
+		if (!is_logged_in()) break;
+		# if (!$id_packlists) die('id_packlists is missing.');
+
+		# make sure required fields are filled in
+		if (strlen($title) < 3) die('Fields are not filled in.');
+
+		# make an array to insert or update
+		$iu = array(
+			'title' => $title
+		);
+
+		# is this an existing item?
+		if ($id_packlists) {
+			$iu['updated'] = date('Y-m-d H:i:s');
+			$iu = dbpua($link, $iu);
+			$sql = 'UPDATE packlists SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_packlists).'"';
+			db_query($link, $sql);
+		# or is it a new item?
+		} else {
+			$iu['created'] = date('Y-m-d H:i:s');
+			$iu['updated'] = date('Y-m-d H:i:s');
+			$iu = dbpia($link, $iu);
+			$sql = 'INSERT INTO packlists ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
+			db_query($link, $sql);
+			$id_packlists = db_insert_id($link);
+		}
+
+		break;
+	case 'insert_update_relations_packlists_items':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_items)) die('Missing id_items parameter.');
+		if (!is_numeric($id_packlists)) die('Missing id_packlists parameter.');
+
+		# check that relation is not there before
+		$sql = 'SELECT * FROM relations_packlists_items WHERE id_packlists="'.dbres($link, $id_packlists).'" AND id_items="'.dbres($link, $id_items).'"';
+		$r = db_query($link, $sql);
+		if (count($r)) {
+			echo json_encode(array(
+				'status' => true
+			));
+			die();
+		}
+
+		# delete packlist relations
+		$sql = 'INSERT INTO  relations_packlists_items (id_packlists, id_items) VALUES("'.dbres($link, $id_packlists).'","'.dbres($link, $id_items).'")';
+		$r = db_query($link, $sql);
+
+		echo json_encode(array(
+			'status' => true
+		));
+		die();
+
+		break;
+
+	case 'delete_packlist':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_packlists)) die('Missing id_packlists parameter.');
+
+		# delete packlist relations
+		$sql = 'DELETE FROM relations_packlists_items WHERE id_packlists="'.dbres($link, $id_packlists).'"';
+		$r = db_query($link, $sql);
+
+		# delete packlist
+		$sql = 'DELETE FROM packlists WHERE id="'.dbres($link, $id_packlists).'"';
+		db_query($link, $sql);
+		break;
+
+	case 'delete_relation_packlists_items':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_relations_packlists_items)) die('Missing id_relations_packlists_items parameter.');
+
+		# delete packlist relations
+		$sql = 'DELETE FROM relations_packlists_items WHERE id="'.dbres($link, $id_relations_packlists_items).'"';
+		$r = db_query($link, $sql);
 
 		break;
 

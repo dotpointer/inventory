@@ -28,6 +28,7 @@
 	# 2017-02-01 18:31:36 - dotpointer domain edit
 	# 2017-04-12 17:08:09 - adding quick button 100% cotton for material
 	# 2017-05-13 15:28:45 - adding weight
+	# 2017-05-13 17:49:28 - adding packlist
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -51,6 +52,8 @@
 	$id_files = isset($_REQUEST['id_files']) ? $_REQUEST['id_files'] : false;
 	$id_items = isset($_REQUEST['id_items']) ? $_REQUEST['id_items'] : false;
 	$id_locations = isset($_REQUEST['id_locations']) ? $_REQUEST['id_locations'] : false;
+	$id_packlists = isset($_REQUEST['id_packlists']) ? $_REQUEST['id_packlists'] : false;
+	$id_relations_packlists_items = isset($_REQUEST['id_relations_packlists_items']) ? $_REQUEST['id_relations_packlists_items'] : false;
 	$inuse = isset($_REQUEST['inuse']) ? $_REQUEST['inuse'] : false;
 	$limit = isset($_REQUEST['limit']) ? $_REQUEST['limit'] : 25;
 	$location = isset($_REQUEST['location']) ? $_REQUEST['location'] : false;
@@ -107,6 +110,8 @@
 		<li><a href="?view=categories">Kategorier</a></li>
 		<li><a href="?view=locations">Platser</a></li>
 		<li><a href="?view=edit_item">Ny</a></li>
+		<li><a href="?view=packlists">Packlistor</a></li>
+
 		<li>
 			<form action="?" method="post">
 				<fieldset>
@@ -379,6 +384,33 @@
 <?php
 			break;
 
+		case 'edit_packlist': # to insert or update a packlist
+			if (!is_logged_in()) {
+				print_login();
+				break;
+			}
+?>
+	<h2>Redigera packlista<?php
+		if (isset($packlist['id'])) {
+			echo ' #'.$packlist['id'];
+		}
+?></h2>
+	<form action="?action=insert_update_packlist" method="post">
+		<fieldset>
+			<input type="hidden" name="view" value="packlists">
+			<input type="hidden" name="id_packlists" value="<?php echo isset($packlist['id']) ? $packlist['id'] : ''?>">
+
+			<div class="row">
+				<label for="title">Titel</label><input class="text" type="text" name="title" value="<?php echo isset($packlist['title']) ? $packlist['title'] : ''?>"><br>
+			</div>
+			<div class="row">
+				<input class="submit" type="submit" name="submit" value="Spara">
+			</div>
+		</fieldset>
+	</form>
+<?php
+			break;
+
 		case 'index': # to list items
 			if (!is_logged_in()) {
 				print_login();
@@ -484,6 +516,19 @@
 							<br>
 							Material: <?php echo $v['materials']?>
 							<?php } ?>
+
+							<form class="form_add_item_to_packlist">
+								<div>
+									<label>Lägg till packlista</label>
+									<input type="hidden" value="<?php echo $v['id'] ?>" name="id_items" >
+									<select>
+										<?php foreach($packlists as $vx) { ?>
+										<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
+										<?php } ?>
+									</select>
+									<input type="submit" value="OK" >
+								</div>
+							</form>
 						</p>
 					</td>
 					<td>
@@ -739,6 +784,110 @@
 		</table>
 <?php
 			break;
+
+		case 'packlist': # to list items from a packlist
+			if (!is_logged_in()) {
+				print_login();
+				break;
+			}
+?>
+		<h2>Packlista <?php echo $packlist['title']; ?> <a href="?view=edit_packlist&amp;id_packlists=<?php echo $packlist['id']; ?>">Redigera</a></div></h2>
+		<table>
+			<thead>
+				<tr>
+					<th>Objekt</th>
+					<th>Vikt</th>
+					<th></th>
+				</tr>
+			</thead>
+<?php 		# walk packlist one by one
+			$x = 0;
+			foreach ($items as $k => $v) {
+				$x += $v['weight'];
+			}
+?>
+
+			<tfoot>
+				<tr>
+					<td>Totalt</td>
+					<td><?php echo $x; ?>g</td>
+					<td></td>
+				</tr>
+			</tfoot>
+			<tbody>
+<?php 		# walk packlist one by one
+			foreach ($items as $k => $v) {
+
+?>
+				<tr>
+					<td>
+						<a href="?view=items=<?php echo $v['id'] ?>"><?php echo $v['title'] ?></a>
+					</td>
+					<td>
+						<?php echo $v['weight'] ?>g
+					</td>
+					<td class="manage">
+						<a href="?action=delete_relation_packlists_items&amp;id_relations_packlists_items=<?php echo $v['id_relations_packlists_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>">Radera relation</a>
+					</td>
+				</tr>
+<?php
+			} # eof-foreach-packlist
+?>
+			</tbody>
+		</table>
+<?php
+			break;
+
+		case 'packlists': # to list item packlists
+			if (!is_logged_in()) {
+				print_login();
+				break;
+			}
+?>
+		<h2>Platser<div class="action"><a href="?view=edit_packlist">Ny</a></div></h2>
+		<table>
+			<thead>
+				<tr>
+					<th>Namn</th>
+					<th>Antal</th>
+					<th>Vikt</th>
+					<th></th>
+				</tr>
+			</thead>
+<?php 		# walk packlists one by one
+			$x = 0;
+			foreach ($packlists as $k => $v) {
+				$x += $v['item_amount'];
+			}
+?>
+			<tbody>
+<?php 		# walk packlists one by one
+			foreach ($packlists as $k => $v) {
+
+?>
+				<tr>
+					<td>
+						<a href="?view=packlist&amp;id_packlists=<?php echo $v['id'] ?>"><?php echo $v['title'] ?></a>
+					</td>
+					<td>
+						<?php echo $v['item_amount'] ?> st
+					</td>
+					<td>
+						<?php echo $v['weight'] ?>g
+					</td>
+					<td class="manage">
+						<a href="?action=delete_packlist&amp;id_packlists=<?php echo $v['id'] ?>&view=packlists">Radera</a>
+						<a href="?view=edit_packlist&amp;id_packlists=<?php echo $v['id'] ?>">Redigera</a>
+					</td>
+				</tr>
+<?php
+			} # eof-foreach-packlists
+?>
+			</tbody>
+		</table>
+<?php
+			break;
+
 	}
 ?>
 </body>
