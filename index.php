@@ -800,7 +800,7 @@
 					<th></th>
 				</tr>
 			</thead>
-<?php 		# walk packlist one by one
+<?php 		# walk packlist items one by one
 			$x = 0;
 			foreach ($items as $k => $v) {
 				$x += $v['weight'];
@@ -815,19 +815,19 @@
 				</tr>
 			</tfoot>
 			<tbody>
-<?php 		# walk packlist one by one
+<?php 		# walk items in packlist one by one
 			foreach ($items as $k => $v) {
 
 ?>
 				<tr>
 					<td>
-						<a href="?view=items=<?php echo $v['id'] ?>"><?php echo $v['title'] ?></a>
+						<a href="?view=index&id_items=<?php echo $v['id_items'] ?>"><?php echo $v['title'] ?></a>
 					</td>
 					<td>
 						<?php echo $v['weight'] ?>g
 					</td>
 					<td class="manage">
-						<a href="?action=delete_relation_packlists_items&amp;id_relations_packlists_items=<?php echo $v['id_relations_packlists_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>">Radera relation</a>
+						<a href="?action=delete_relation_packlists_items&amp;id_relations_packlists_items=<?php echo $v['id_relations_packlists_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>" class="confirm">Radera relation</a>
 					</td>
 				</tr>
 <?php
@@ -844,12 +844,12 @@
 				break;
 			}
 ?>
-		<h2>Platser<div class="action"><a href="?view=edit_packlist">Ny</a></div></h2>
+		<h2>Packlistor<div class="action"><a href="?view=edit_packlist">Ny</a></div></h2>
 		<table>
 			<thead>
 				<tr>
 					<th>Namn</th>
-					<th>Antal</th>
+					<th>Objekt</th>
 					<th>Vikt</th>
 					<th></th>
 				</tr>
@@ -872,11 +872,11 @@
 					<td>
 						<?php echo $v['item_amount'] ?> st
 					</td>
-					<td>
+					<td class="counter">
 						<?php echo $v['weight'] ?>g
 					</td>
 					<td class="manage">
-						<a href="?action=delete_packlist&amp;id_packlists=<?php echo $v['id'] ?>&view=packlists">Radera</a>
+						<a href="?action=delete_packlist&amp;id_packlists=<?php echo $v['id'] ?>&view=packlists" class="confirm">Radera</a>
 						<a href="?view=edit_packlist&amp;id_packlists=<?php echo $v['id'] ?>">Redigera</a>
 					</td>
 				</tr>

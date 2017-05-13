@@ -33,6 +33,16 @@
 
 	$(window.document).ready(function() {
 
+		$('a.confirm').on('click', function(e) {
+
+			if (!window.confirm('Är du säker på att du vill fortsätta?')) {
+				e.preventDefault();
+				return false;
+			}
+
+			return true;
+		});
+
 		switch (i.view) {
 			case 'edit_item':
 

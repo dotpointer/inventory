@@ -443,7 +443,11 @@ switch ($view) {
 			WHERE
 				i.id = rpi.id_items
 				AND
-				rpi.id_packlists = "'.dbres($link, $id_packlists).'"');
+				rpi.id_packlists = "'.dbres($link, $id_packlists).'"
+			ORDER BY
+				title
+			');
+
 
 		break;
 
@@ -453,8 +457,8 @@ switch ($view) {
 		$sql = 'SELECT
 					p.id,
 					p.title,
-					0 AS item_amount,
-					0 AS weight
+					irpi.item_amount AS item_amount,
+					irpi.weight AS weight
 				FROM
 					packlists AS p
 					LEFT JOIN (
