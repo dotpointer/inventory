@@ -96,15 +96,11 @@
 	
 	define('MAGICK_PATH','/usr/bin/');
 
-
+	# check if this is production or development
 	if (strpos(realpath(dirname(__FILE__)), '/develop/') === false) {
-		echo 'RUNNING PRODUCTION';
-		die();
 		# production id
 	define('ID_VISUM', false); # our site-id in visum
 	} else {
-		echo 'RUNNING DEVELOPMENT';
-		die();
 		# development id
 		define('ID_VISUM', false); # our site-id in visum
 	}
