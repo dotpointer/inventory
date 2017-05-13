@@ -237,8 +237,8 @@
 				<input class="text" type="text" name="watt_max" value="<?php echo isset($item['watt_max']) ? $item['watt_max'] : ''?>">
 			</div>
 			<div class="row">
-				<label for="weight">Watt max:</label>
-				<input class="text" type="text" name="weight" value="<?php echo isset($item['weight']) ? $item['weight'] : ''?>">
+				<label for="weight">Vikt:</label>
+				<input class="text" type="text" name="weight" value="<?php echo isset($item['weight']) ? $item['weight'] : ''?>">g
 			</div>
 			<div class="row">
 				<label for="source">Fått från:</label>
@@ -447,7 +447,7 @@
 
 							<?php if ($v['weight']) { ?>
 							<br>
-							Vikt: <?php echo $v['weight']?>-<?php echo $v['weight']?>
+							Vikt: <?php echo $v['weight']?>-<?php echo $v['weight']?>g
 							<?php } ?>
 
 							<?php if ($v['batteries_aa']) { ?>
