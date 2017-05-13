@@ -447,7 +447,7 @@
 
 							<?php if ($v['weight']) { ?>
 							<br>
-							Vikt: <?php echo $v['weight']?>-<?php echo $v['weight']?>g
+							Vikt: <?php echo $v['weight']?>g
 							<?php } ?>
 
 							<?php if ($v['batteries_aa']) { ?>
