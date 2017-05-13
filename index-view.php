@@ -16,6 +16,7 @@
 # 2016-03-27 17:47:26 - adding files table
 # 2016-03-27 18:41:06 - adding images to locations
 # 2017-01-26 21:32:04 - adding materials column
+# 2017-05-13 15:30:51 - adding weight
 
 if (!isset($view)) die();
 
@@ -324,7 +325,8 @@ switch ($view) {
 					i.title,
 					i.updated,
 					i.watt,
-					i.watt_max
+					i.watt_max,
+					i.weight
 				FROM items AS i';
 
 		if ($id_locations) {
