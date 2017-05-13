@@ -113,7 +113,6 @@
 			case 'index':
 
 				$('form.form_add_item_to_packlist').on('submit', function(e) {
-
 					$.postJSON("?action=insert_update_relations_packlists_items&format=json", {
 						id_items: $(this).find('input[name="id_items"]').val(),
 						id_packlists: $(this).find('select:first').val()
@@ -135,6 +134,60 @@
 
 
 				break;
+			case 'packlist':
+
+				$('table input[type="checkbox"]').on('change', function(e) {
+
+					if ($(this).prop('checked')) {
+						$(this).parent('td').removeClass('unpacked').addClass('packed');
+					} else {
+						$(this).parent('td').removeClass('packed').addClass('unpacked');
+					}
+
+					if ($(this).attr('data-packlist-item') === '0') {
+						$.getJSON(".", {
+							action: 'update_relations_packlists_items_packed',
+							format: 'json',
+							id_relations_packlists_items: $(this).attr('data-id-relations-packlists-items'),
+							packed: $(this).prop('checked') ? 1 : 0
+						});
+					} else {
+						$.getJSON(".", {
+							action: 'update_packlist_items_packed',
+							format: 'json',
+							id_packlist_items: $(this).attr('data-id-packlist-items'),
+							packed: $(this).prop('checked') ? 1 : 0
+						});
+					}
+
+					e.preventDefault();
+					return false;
+
+				});
+
+				$('.edit_packlist_item').on('click', function(e) {
+					$('form input[name="title"]').val($(this).attr('data-title'));
+					$('form input[name="weight"]').val($(this).attr('data-weight'));
+					$('#span_id_packlist_items').text($(this).attr('data-id-packlist-items'));
+					$('form input[name="id_packlist_items"]').val($(this).attr('data-id-packlist-items'));
+					e.preventDefault();
+					return false;
+				});
+
+				$('#a_form_packlist_item_reset').click(function(e) {
+					$('#form_edit_packlist_item')[0].reset();
+					$('#span_id_packlist_items').text('Nytt objekt');
+					$('form input[name="title"]').val('');
+					$('form input[name="weight"]').val('');
+					$('form input[name="id_packlist_items"]').val(0);
+
+					e.preventDefault();
+					return false;
+				});
+
+
+				break;
+
 		}
 
 	});

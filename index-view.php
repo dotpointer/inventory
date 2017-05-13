@@ -18,6 +18,7 @@
 # 2017-01-26 21:32:04 - adding materials column
 # 2017-05-13 15:30:51 - adding weight
 # 2017-05-13 17:50:02 - adding packlist
+# 2017-05-13 23:06:59 - adding packlist items
 
 if (!isset($view)) die();
 
@@ -436,7 +437,9 @@ switch ($view) {
 				i.id AS id_items,
 				rpi.id AS id_relations_packlists_items,
 				i.title,
-				i.weight
+				i.weight,
+				0 AS packlist_item,
+				rpi.packed
 			FROM
 				items as i,
 				relations_packlists_items AS rpi
@@ -448,6 +451,22 @@ switch ($view) {
 				title
 			');
 
+		# list of items only in this packlist
+		$packlist_items = db_query($link, '
+			SELECT
+				id AS id_packlist_items,
+				title,
+				weight,
+				1 AS packlist_item,
+				packed
+			FROM packlist_items
+			WHERE id_packlists="'.dbres($link, $id_packlists).'"'
+		);
+
+		# walk packlist items and add to items
+		foreach ($packlist_items as $item) {
+			$items[] = $item;
+		}
 
 		break;
 

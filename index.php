@@ -29,6 +29,7 @@
 	# 2017-04-12 17:08:09 - adding quick button 100% cotton for material
 	# 2017-05-13 15:28:45 - adding weight
 	# 2017-05-13 17:49:28 - adding packlist
+	# 2017-05-13 23:06:12 - adding packlist items
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -53,10 +54,12 @@
 	$id_items = isset($_REQUEST['id_items']) ? $_REQUEST['id_items'] : false;
 	$id_locations = isset($_REQUEST['id_locations']) ? $_REQUEST['id_locations'] : false;
 	$id_packlists = isset($_REQUEST['id_packlists']) ? $_REQUEST['id_packlists'] : false;
+	$id_packlist_items = isset($_REQUEST['id_packlist_items']) ? $_REQUEST['id_packlist_items'] : false;
 	$id_relations_packlists_items = isset($_REQUEST['id_relations_packlists_items']) ? $_REQUEST['id_relations_packlists_items'] : false;
 	$inuse = isset($_REQUEST['inuse']) ? $_REQUEST['inuse'] : false;
 	$limit = isset($_REQUEST['limit']) ? $_REQUEST['limit'] : 25;
 	$location = isset($_REQUEST['location']) ? $_REQUEST['location'] : false;
+	$packed = isset($_REQUEST['packed']) ? $_REQUEST['packed'] : false;
 	$price = isset($_REQUEST['price']) ? $_REQUEST['price'] : false;
 	$source = isset($_REQUEST['source']) ? $_REQUEST['source'] : false;
 	$start = isset($_REQUEST['start']) ? $_REQUEST['start'] : 0;
@@ -795,6 +798,7 @@
 		<table>
 			<thead>
 				<tr>
+					<th>Packad</th>
 					<th>Objekt</th>
 					<th>Vikt</th>
 					<th></th>
@@ -809,25 +813,59 @@
 
 			<tfoot>
 				<tr>
+					<td></td>
 					<td>Totalt</td>
 					<td><?php echo $x; ?>g</td>
-					<td></td>
+					<td><?php echo count($items); ?> st</td>
 				</tr>
 			</tfoot>
 			<tbody>
 <?php 		# walk items in packlist one by one
 			foreach ($items as $k => $v) {
-
 ?>
 				<tr>
+					<td class="<?php echo (int)$v['packed'] ? 'packed' : 'unpacked'?>">
+						<input
+							data-packlist-item="<?php echo (int)$v['packlist_item']?>"
+<?php
+				if (!(int)$v['packlist_item']) {
+?>
+							data-id-relations-packlists-items="<?php echo (int)$v['id_relations_packlists_items']?>"
+<?php
+				} else {
+?>
+							data-id-packlist-items="<?php echo (int)$v['id_packlist_items']?>"
+<?php			} ?>
+							type="checkbox"
+							value="1"<?php echo (int)$v['packed'] ? ' checked' : ''?>>
+					</td>
 					<td>
+<?php
+				if (!(int)$v['packlist_item']) { ?>
 						<a href="?view=index&id_items=<?php echo $v['id_items'] ?>"><?php echo $v['title'] ?></a>
+<?php			} else {
+					echo $v['title'];
+				}
+?>
 					</td>
 					<td>
 						<?php echo $v['weight'] ?>g
 					</td>
 					<td class="manage">
-						<a href="?action=delete_relation_packlists_items&amp;id_relations_packlists_items=<?php echo $v['id_relations_packlists_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>" class="confirm">Radera relation</a>
+<?php
+						# is this a regular item
+				if (!(int)$v['packlist_item']) {
+?>
+						<a href="?action=delete_relation_packlists_items&amp;id_relations_packlists_items=<?php echo $v['id_relations_packlists_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>" class="confirm">Radera</a>
+<?php
+				# or is this a packlist item
+				} else {
+?>
+						<a href="?" class="edit_packlist_item" data-id-packlist-items="<?php echo $v['id_packlist_items'] ?>" data-weight="<?php echo $v['weight'] ?>" data-title="<?php echo $v['title'] ?>">Redigera</a>
+						<a href="?action=delete_packlist_item&amp;id_packlist_items=<?php echo $v['id_packlist_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>" class="confirm">Radera</a>
+<?php
+				}
+?>
 					</td>
 				</tr>
 <?php
@@ -835,6 +873,24 @@
 ?>
 			</tbody>
 		</table>
+
+		<h2>Lägg till/redigera objekt utanför inventariedatabasen <a href="#" id="a_form_packlist_item_reset">Rensa</a></h2>
+		<form action="?action=insert_update_packlist_item" method="post" id="form_edit_packlist_item">
+			<fieldset>
+				<input type="hidden" name="view" value="packlist">
+				<input type="hidden" name="id_packlists" value="<?php echo isset($packlist['id']) ? $packlist['id'] : ''?>">
+				<input type="hidden" name="id_packlist_items" value="0">
+
+				<div class="row">
+					<label>#</label><span class="value" id="span_id_packlist_items">Nytt objekt</span><br>
+					<label for="title">Titel</label><input class="text" type="text" name="title" value=""><br>
+					<label for="weight">Vikt</label><input class="text" type="text" name="weight" value=""><br>
+				</div>
+				<div class="row">
+					<input class="submit" type="submit" name="submit" value="Spara">
+				</div>
+			</fieldset>
+		</form>
 <?php
 			break;
 

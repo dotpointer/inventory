@@ -16,6 +16,7 @@
 # 2017-01-26 21:31:29 - adding materials column
 # 2017-05-13 15:32:31 - adding weight
 # 2017-05-13 17:49:51 - adding packlist
+# 2017-05-13 23:06:26 - adding packlist items
 
 if (!isset($action)) die();
 
@@ -578,8 +579,6 @@ switch ($action) {
 		));
 		die();
 
-		break;
-
 	case 'delete_packlist':
 
 		if (!is_logged_in()) break;
@@ -606,6 +605,69 @@ switch ($action) {
 		$r = db_query($link, $sql);
 
 		break;
+
+	case 'insert_update_packlist_item':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_packlists)) die('Missing id_packlists parameter.');
+		if (!strlen($title)) die('Missing title parameter.');
+		if (!strlen($weight)) die('Missing weight parameter.');
+
+		if ($id_packlist_items) {
+			# update packed status
+			$sql = 'UPDATE packlist_items SET title="'.dbres($link, $title).'", weight="'.dbres($link, $weight).'" WHERE id="'.dbres($link, $id_packlist_items).'"';
+			$r = db_query($link, $sql);
+		} else {
+			# delete packlist relations
+			$sql = 'INSERT INTO  packlist_items (id_packlists, title, weight) VALUES("'.dbres($link, $id_packlists).'","'.dbres($link, $title).'","'.dbres($link, $weight).'")';
+			$r = db_query($link, $sql);
+		}
+		break;
+
+	case 'delete_packlist_item':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_packlist_items)) die('Missing id_packlist_items.');
+
+		# delete packlist relations
+		$sql = 'DELETE FROM packlist_items WHERE id="'.dbres($link, $id_packlist_items).'"';
+		$r = db_query($link, $sql);
+
+		break;
+
+	case 'update_relations_packlists_items_packed':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_relations_packlists_items)) die('Missing id_packlist_items parameter.');
+		if (!is_numeric($packed)) die('Missing packed parameter.');
+
+		# update packed status
+		$sql = 'UPDATE relations_packlists_items SET packed="'.dbres($link, $packed).'" WHERE id="'.dbres($link, $id_relations_packlists_items).'"';
+		$r = db_query($link, $sql);
+
+		echo json_encode(array(
+			'status' => true
+		));
+		die();
+
+	case 'update_packlist_items_packed':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_packlist_items)) die('Missing id_packlist_items parameter.');
+		if (!is_numeric($packed)) die('Missing packed parameter.');
+
+		# update packed status
+		$sql = 'UPDATE packlist_items SET packed="'.dbres($link, $packed).'" WHERE id="'.dbres($link, $id_packlist_items).'"';
+		$r = db_query($link, $sql);
+
+		echo json_encode(array(
+			'status' => true
+		));
+		die();
 
 	case 'login': # login taken from mediaarchive
 
