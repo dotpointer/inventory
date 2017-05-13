@@ -97,7 +97,17 @@
 	define('MAGICK_PATH','/usr/bin/');
 
 
-define('ID_VISUM', false); # our site-id in visum
+	if (strpos(realpath(dirname(__FILE__)), '/develop/') === false) {
+		echo 'RUNNING PRODUCTION';
+		die();
+		# production id
+	define('ID_VISUM', false); # our site-id in visum
+	} else {
+		echo 'RUNNING DEVELOPMENT';
+		die();
+		# development id
+		define('ID_VISUM', false); # our site-id in visum
+	}
 	
 	function is_logged_in() {
 		if (!isset($_SESSION[SITE_SHORTNAME])) {
