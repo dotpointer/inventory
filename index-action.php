@@ -14,6 +14,7 @@
 # 2016-03-27 17:47:53 - adding files table
 # 2016-09-22 22:09:08 - mysql
 # 2017-01-26 21:31:29 - adding materials column
+# 2017-05-13 15:32:31 - adding weight
 
 if (!isset($action)) die();
 
@@ -304,7 +305,8 @@ switch ($action) {
 			'title' => $title,
 			'updated' => date('Y-m-d H:i:s'),
 			'watt_max' => $watt_max,
-			'watt' => $watt
+			'watt' => $watt,
+			'weight' => $weight
 		);
 
 		# is this an existing item?
