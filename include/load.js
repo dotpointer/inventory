@@ -165,6 +165,24 @@
 
 				});
 
+				$('table select').on('change', function(e) {
+					if ($(this).attr('data-packlist-item') === '0') {
+						$.getJSON(".", {
+							action: 'update_relations_packlists_items_inuse',
+							format: 'json',
+							id_relations_packlists_items: $(this).attr('data-id-relations-packlists-items'),
+							inuse: $(this).val()
+						});
+					} else {
+						$.getJSON(".", {
+							action: 'update_packlist_items_inuse',
+							format: 'json',
+							id_packlist_items: $(this).attr('data-id-packlist-items'),
+							inuse: $(this).val()
+						});
+					}
+				});
+
 				$('.edit_packlist_item').on('click', function(e) {
 					$('form input[name="title"]').val($(this).attr('data-title'));
 					$('form input[name="weight"]').val($(this).attr('data-weight'));

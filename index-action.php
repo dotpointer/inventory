@@ -17,6 +17,7 @@
 # 2017-05-13 15:32:31 - adding weight
 # 2017-05-13 17:49:51 - adding packlist
 # 2017-05-13 23:06:26 - adding packlist items
+# 2017-05-21 20:42:04 - adding packlist inuse
 
 if (!isset($action)) die();
 
@@ -636,6 +637,38 @@ switch ($action) {
 		$r = db_query($link, $sql);
 
 		break;
+
+	case 'update_relations_packlists_items_inuse':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_relations_packlists_items)) die('Missing id_packlist_items parameter.');
+		if (!is_numeric($inuse)) die('Missing inuse parameter.');
+
+		# update inuse status
+		$sql = 'UPDATE relations_packlists_items SET inuse="'.dbres($link, $inuse).'" WHERE id="'.dbres($link, $id_relations_packlists_items).'"';
+		$r = db_query($link, $sql);
+
+		echo json_encode(array(
+			'status' => true
+		));
+		die();
+
+	case 'update_packlist_items_inuse':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_packlist_items)) die('Missing id_packlist_items parameter.');
+		if (!is_numeric($inuse)) die('Missing inuse parameter.');
+
+		# update inuse status
+		$sql = 'UPDATE packlist_items SET inuse="'.dbres($link, $inuse).'" WHERE id="'.dbres($link, $id_packlist_items).'"';
+		$r = db_query($link, $sql);
+
+		echo json_encode(array(
+			'status' => true
+		));
+		die();
 
 	case 'update_relations_packlists_items_packed':
 

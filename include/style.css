@@ -354,29 +354,45 @@ div.status.dumped {
 	background-color: #ffc9c9;
 }
 
-div.inuse4 {
+
+.inuse4 {
 	background-color: #c9ffc9;
+}
+
+.inuse3 {
+	background-color: #c9ffc9;
+}
+
+.inuse2 {
+	background-color: #FFC824;
+}
+
+.inuse1 {
+	background-color: #ffc9c9;
+}
+
+.inuse0 {
+	background-color: #f0f0f0;
+}
+
+div.inuse4 {
 	border: 1px solid #00ff00;
 }
 
 div.inuse3 {
-	background-color: #c9ffc9;
 	border: 1px solid #00ff00;
 }
 
 div.inuse2 {
-	background-color: #FFC824;
 	border: 1px solid #D1A41D;
 }
 
 div.inuse1 {
 	border: 1px solid red;
-	background-color: #ffc9c9;
 }
 
 div.inuse0 {
 	border: 1px solid #808080;
-	background-color: #f0f0f0;
 }
 
 div.inuse {

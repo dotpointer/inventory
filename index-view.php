@@ -19,6 +19,7 @@
 # 2017-05-13 15:30:51 - adding weight
 # 2017-05-13 17:50:02 - adding packlist
 # 2017-05-13 23:06:59 - adding packlist items
+# 2017-05-21 20:42:30 - adding packlist inuse
 
 if (!isset($view)) die();
 
@@ -439,7 +440,8 @@ switch ($view) {
 				i.title,
 				i.weight,
 				0 AS packlist_item,
-				rpi.packed
+				rpi.packed,
+				rpi.inuse
 			FROM
 				items as i,
 				relations_packlists_items AS rpi
@@ -458,7 +460,8 @@ switch ($view) {
 				title,
 				weight,
 				1 AS packlist_item,
-				packed
+				packed,
+				inuse
 			FROM packlist_items
 			WHERE id_packlists="'.dbres($link, $id_packlists).'"'
 		);

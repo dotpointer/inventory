@@ -30,6 +30,7 @@
 	# 2017-05-13 15:28:45 - adding weight
 	# 2017-05-13 17:49:28 - adding packlist
 	# 2017-05-13 23:06:12 - adding packlist items
+	# 2017-05-21 20:41:41 - adding packlist inuse
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -800,6 +801,7 @@
 				<tr>
 					<th>Packad</th>
 					<th>Objekt</th>
+					<th>Användning</th>
 					<th>Vikt</th>
 					<th></th>
 				</tr>
@@ -815,6 +817,7 @@
 				<tr>
 					<td></td>
 					<td>Totalt</td>
+					<td></td>
 					<td><?php echo $x; ?>g</td>
 					<td><?php echo count($items); ?> st</td>
 				</tr>
@@ -847,6 +850,32 @@
 					echo $v['title'];
 				}
 ?>
+					</td>
+					<td>
+						<select
+							name="inuse<?php echo (int)$v['inuse']?>"
+							data-packlist-item="<?php echo (int)$v['packlist_item']?>"
+<?php
+				if (!(int)$v['packlist_item']) {
+?>
+							data-id-relations-packlists-items="<?php echo (int)$v['id_relations_packlists_items']?>"
+<?php
+				} else {
+?>
+							data-id-packlist-items="<?php echo (int)$v['id_packlist_items']?>"
+<?php			} ?>>
+							<option value="<?php echo $k;?>"<?php echo $selected?>>-- Används</option>
+<?php
+					# walk inuse
+					foreach ($usage as $k2 => $v2) {
+						$selected = isset($v['inuse']) && (int)$k2 === (int)$v['inuse'] ? ' selected="selected"' : '';
+						# print option
+?>
+							<option value="<?php echo $k2;?>"<?php echo $selected?>><?php echo $v2?></option>
+<?php
+					}
+?>
+						</select>
 					</td>
 					<td>
 						<?php echo $v['weight'] ?>g
