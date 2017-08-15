@@ -82,7 +82,7 @@
 
 	# send user to login page if not logged in
 	if (!is_logged_in()) {
-		header('Location: http://www.<?php echo BASE_DOMAINNAME?>/?section=visum&id_sites='.ID_VISUM);
+		header('Location: http://www.'.BASE_DOMAINNAME.'/?section=visum&id_sites='.ID_VISUM);
 		die();
 	}
 ?><html>
