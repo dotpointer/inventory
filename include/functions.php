@@ -17,6 +17,7 @@
 	# 2017-05-13 15:28:36 - adding weight
 	# 2017-05-13 17:49:40 - adding packlist
 	# 2017-05-21 20:42:15 - adding packlist inuse
+	# 2017-08-15 18:12:20 - getting visum base domain name from config
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');
@@ -136,7 +137,7 @@
 	function print_login() {
 ?>
 <p class="login">
-	<a href="http://www.dotpointer.tk/?section=visum&id_sites=<?php echo ID_VISUM?>">Inloggning krävs, klicka här för att logga in.<a/>
+	<a href="http://www.<?php echo BASE_DOMAINNAME?>/?section=visum&id_sites=<?php echo ID_VISUM?>">Inloggning krävs, klicka här för att logga in.<a/>
 </p>
 <?php
 		return true;
