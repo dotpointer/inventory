@@ -18,6 +18,7 @@
 # 2017-05-13 17:49:51 - adding packlist
 # 2017-05-13 23:06:26 - adding packlist items
 # 2017-05-21 20:42:04 - adding packlist inuse
+# 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 
 if (!isset($action)) die();
 
@@ -534,7 +535,9 @@ switch ($action) {
 
 		# make an array to insert or update
 		$iu = array(
-			'title' => $title
+			'title' => $title,
+			'`from`' => str_replace('T', ' ', $from),
+			'`to`' => str_replace('T', ' ', $to)
 		);
 
 		# is this an existing item?
@@ -551,6 +554,11 @@ switch ($action) {
 			$sql = 'INSERT INTO packlists ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
 			db_query($link, $sql);
 			$id_packlists = db_insert_id($link);
+		}
+
+		# is packlist copying requested
+		if ($id_packlists_from) {
+			copy_packlist($link, $id_packlists_from, $id_packlists);
 		}
 
 		break;

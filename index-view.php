@@ -20,6 +20,7 @@
 # 2017-05-13 17:50:02 - adding packlist
 # 2017-05-13 23:06:59 - adding packlist items
 # 2017-05-21 20:42:30 - adding packlist inuse
+# 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 
 if (!isset($view)) die();
 
@@ -126,7 +127,13 @@ switch ($view) {
 				# then take the first of it
 				$packlist = $packlists[0];
 			}
+			# sort by from, because some trips may not know the to-date
+			$packlists_copy = db_query($link, 'SELECT * FROM packlists WHERE NOT id="'.dbres($link, $id_packlists).'" ORDER BY `from` DESC');
+		} else {
+			# sort by from, because some trips may not know the to-date
+			$packlists_copy = db_query($link, 'SELECT * FROM packlists ORDER BY `from` DESC');
 		}
+
 		break;
 
 	case 'category': # to display a category
@@ -169,112 +176,32 @@ switch ($view) {
 			ORDER BY title');
 		break;
 
-
-	case 'locations': # to display a list of locations
+	case 'file': # to get a file
 		if (!is_logged_in()) break;
-		$sql = '
-			SELECT
-				l.id,
-				l.id_files,
-				l.title,
-				l.contents,
-				itemcount.amount AS item_amount,
-				IFNULL(inuse0.amount, 0) AS inuse0_amount,
-				IFNULL(inuse1.amount, 0) AS inuse1_amount,
-				IFNULL(inuse2.amount, 0) AS inuse2_amount,
-				IFNULL(inuse3.amount, 0) AS inuse3_amount,
-				IFNULL(inuse4.amount, 0) AS inuse4_amount
-			FROM
-				locations AS l
-				LEFT JOIN (
 
+		# make sure id is specified
+		if (!$id_files || !is_numeric($id_files)) die('File ID must be specified.');
 
-					SELECT
-						COUNT(ir.id) AS amount,
-						ir.id_locations,
-						ir.status
-					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
-					WHERE
-						ir.status<='.STATUS_OWNSELL.'
-					GROUP BY
-						ir.id_locations
+		# get thumbnail?
+		if ($type === 'thumbnail') {
 
-				) AS itemcount ON l.id = itemcount.id_locations
-				LEFT JOIN (
-					SELECT
-						COUNT(ir.id) AS amount,
-						ir.id_locations,
-						ir.inuse
-					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
-					WHERE
-						ir.inuse=0
-					GROUP BY
-						ir.id_locations
-				) AS inuse0 ON l.id = inuse0.id_locations
-				LEFT JOIN (
+			$fullpath = THUMBNAIL_DIR.(int)$id_files.'.jpg';
+		# or get regular file?
+		} else {
+			$fullpath = FILE_DIR.(int)$id_files.'.jpg';
+		}
 
-					SELECT
-						COUNT(ir.id) AS amount,
-						ir.id_locations,
-						ir.inuse
-					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
-					WHERE
-						ir.inuse=1
-					GROUP BY
-						ir.id_locations
-				) AS inuse1 ON l.id = inuse1.id_locations
-				LEFT JOIN (
+		# make sire file exists
+		if (!file_exists($fullpath)) die('File not found.');
 
-					SELECT
-						COUNT(ir.id) AS amount,
-						ir.id_locations,
-						ir.inuse
-					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
-					WHERE
-						ir.inuse=2
-					GROUP BY
-						ir.id_locations
+		# output header - JPEG data
+		header('Content-Disposition: inline; filename='.basename($fullpath));
+		header('Content-Type: image/jpeg');
+		header('Content-Length: '.filesize($fullpath));
 
-				) AS inuse2 ON l.id = inuse2.id_locations
-				LEFT JOIN (
-
-					SELECT
-						COUNT(ir.id) AS amount,
-						ir.id_locations,
-						ir.inuse
-					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
-					WHERE
-						ir.inuse=3
-					GROUP BY
-						ir.id_locations
-
-
-				) AS inuse3 ON l.id = inuse3.id_locations
-				LEFT JOIN (
-
-					SELECT
-						COUNT(ir.id) AS amount,
-						ir.id_locations,
-						ir.inuse
-					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
-					WHERE
-						ir.inuse=4
-					GROUP BY
-						ir.id_locations
-
-				) AS inuse4 ON l.id = inuse4.id_locations
-			ORDER BY l.title';
-			# die($sql);
-
-			$locations = db_query($link, $sql);
-
-		break;
+		# print file
+		readfile($fullpath);
+		die();
 
 	case 'index': # to list items
 		if (!is_logged_in()) break;
@@ -394,37 +321,117 @@ switch ($view) {
 			$items[$k]['locations'] = $locations;
 		}
 
-		$packlists = db_query($link, 'SELECT * FROM packlists');
+		# sort by from, because some trips may not know the to-date
+		$packlists = db_query($link, 'SELECT * FROM packlists ORDER BY `from` DESC');
 
 	#	die($sql);
 		break;
 
-	case 'file': # to get a file
+	case 'locations': # to display a list of locations
 		if (!is_logged_in()) break;
+		$sql = '
+			SELECT
+				l.id,
+				l.id_files,
+				l.title,
+				l.contents,
+				itemcount.amount AS item_amount,
+				IFNULL(inuse0.amount, 0) AS inuse0_amount,
+				IFNULL(inuse1.amount, 0) AS inuse1_amount,
+				IFNULL(inuse2.amount, 0) AS inuse2_amount,
+				IFNULL(inuse3.amount, 0) AS inuse3_amount,
+				IFNULL(inuse4.amount, 0) AS inuse4_amount
+			FROM
+				locations AS l
+				LEFT JOIN (
 
-		# make sure id is specified
-		if (!$id_files || !is_numeric($id_files)) die('File ID must be specified.');
 
-		# get thumbnail?
-		if ($type === 'thumbnail') {
+					SELECT
+						COUNT(ir.id) AS amount,
+						ir.id_locations,
+						ir.status
+					FROM
+						(SELECT items.id, relations_items_locations.id_locations, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+					WHERE
+						ir.status<='.STATUS_OWNSELL.'
+					GROUP BY
+						ir.id_locations
 
-			$fullpath = THUMBNAIL_DIR.(int)$id_files.'.jpg';
-		# or get regular file?
-		} else {
-			$fullpath = FILE_DIR.(int)$id_files.'.jpg';
-		}
+				) AS itemcount ON l.id = itemcount.id_locations
+				LEFT JOIN (
+					SELECT
+						COUNT(ir.id) AS amount,
+						ir.id_locations,
+						ir.inuse
+					FROM
+						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+					WHERE
+						ir.inuse=0
+					GROUP BY
+						ir.id_locations
+				) AS inuse0 ON l.id = inuse0.id_locations
+				LEFT JOIN (
 
-		# make sire file exists
-		if (!file_exists($fullpath)) die('File not found.');
+					SELECT
+						COUNT(ir.id) AS amount,
+						ir.id_locations,
+						ir.inuse
+					FROM
+						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+					WHERE
+						ir.inuse=1
+					GROUP BY
+						ir.id_locations
+				) AS inuse1 ON l.id = inuse1.id_locations
+				LEFT JOIN (
 
-		# output header - JPEG data
-		header('Content-Disposition: inline; filename='.basename($fullpath));
-		header('Content-Type: image/jpeg');
-		header('Content-Length: '.filesize($fullpath));
+					SELECT
+						COUNT(ir.id) AS amount,
+						ir.id_locations,
+						ir.inuse
+					FROM
+						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+					WHERE
+						ir.inuse=2
+					GROUP BY
+						ir.id_locations
 
-		# print file
-		readfile($fullpath);
-		die();
+				) AS inuse2 ON l.id = inuse2.id_locations
+				LEFT JOIN (
+
+					SELECT
+						COUNT(ir.id) AS amount,
+						ir.id_locations,
+						ir.inuse
+					FROM
+						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+					WHERE
+						ir.inuse=3
+					GROUP BY
+						ir.id_locations
+
+
+				) AS inuse3 ON l.id = inuse3.id_locations
+				LEFT JOIN (
+
+					SELECT
+						COUNT(ir.id) AS amount,
+						ir.id_locations,
+						ir.inuse
+					FROM
+						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+					WHERE
+						ir.inuse=4
+					GROUP BY
+						ir.id_locations
+
+				) AS inuse4 ON l.id = inuse4.id_locations
+			ORDER BY l.title';
+			# die($sql);
+
+			$locations = db_query($link, $sql);
+
+		break;
 
 	case 'packlist': # to display a category
 		if (!is_logged_in()) break;
@@ -473,12 +480,14 @@ switch ($view) {
 
 		break;
 
-	case 'packlists': # to display a category
+	case 'packlists': # to display packlists
 		if (!is_logged_in()) break;
 
 		$sql = 'SELECT
+					p.from,
 					p.id,
 					p.title,
+					p.to,
 					irpi.item_amount AS item_amount,
 					irpi.weight AS weight
 				FROM
@@ -497,7 +506,7 @@ switch ($view) {
 							rpi.id_packlists
 					) AS irpi ON irpi.id_packlists = p.id
 				ORDER BY
-					p.title
+					p.from DESC
 				';
 
 		$packlists = db_query($link, $sql);

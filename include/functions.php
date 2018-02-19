@@ -18,6 +18,7 @@
 	# 2017-05-13 17:49:40 - adding packlist
 	# 2017-05-21 20:42:15 - adding packlist inuse
 	# 2017-08-15 18:12:20 - getting visum base domain name from config
+	# 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');
@@ -27,7 +28,7 @@
 	# CREATE DATABASE inventory;
 	# CREATE TABLE items (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, id_categories INT NOT NULL, id_files INT NOT NULL DEFAULT 0, title TINYTEXT NOT NULL, description TEXT NOT NULL, batteries_aa INT NOT NULL DEFAULT 0, batteries_aaa INT NOT NULL DEFAULT 0, batteries_c INT NOT NULL DEFAULT 0, batteries_d INT NOT NULL DEFAULT 0, batteries_e INT NOT NULL DEFAULT 0, batteries_3r12 INT NOT NULL DEFAULT 0, materials tinytext not null, watt_max float, weight bigint not null default 0, price FLOAT NOT NULL, source TINYTEXT NOT NULL, location TINYTEXT NOT NULL, status INT NOT NULL DEFAULT 1, inuse INT NOT NULL, acquired DATETIME NOT NULL, disposed DATETIME NOT NULL, created DATETIME NOT NULL, updated DATETIME NOT NULL);
 	# CREATE TABLE categories (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, title TINYTEXT NOT NULL);
-	# CREATE TABLE packlists (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,	title TINYTEXT NOT NULL, updated DATETIME NOT NULL,	created DATETIME NOT NULL);
+	# CREATE TABLE packlists (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,	title TINYTEXT NOT NULL, `from` DATETIME NOT NULL, `to` DATETIME NOT NULL, updated DATETIME NOT NULL,	created DATETIME NOT NULL);
 	# CREATE TABLE relations_packlists_items (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, id_packlists INT NOT NULL, id_items INT NOT NULL, inuse int not null, packed INT NOT NULL DEFAULT 0, created DATETIME NOT NULL);
 	# CREATE TABLE packlist_items (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, id_packlists INT NOT NULL, inuse int not null, packed INT NOT NULL DEFAULT 0, title TINYTEXT NOT NULL, weight INT NOT NULL DEFAULT 0, updated DATETIME NOT NULL, created DATETIME NOT NULL);
 	# CREATE TABLE inventory.users(id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, id_visum INT NOT NULL UNIQUE, nickname VARCHAR(16) NOT NULL, gender enum('0','1','2') NOT NULL, birth DATETIME NOT NULL, updated DATETIME NOT NULL, created DATETIME NOT NULL);
@@ -108,6 +109,55 @@
 	} else {
 		# development id
 		define('ID_VISUM', false); # our site-id in visum
+	}
+
+	function copy_packlist($link, $id_packlists_from, $id_packlists_to) {
+
+		# copy packlist item relations
+		$sql = 'SELECT * FROM relations_packlists_items WHERE id_packlists="'.dbres($link, $id_packlists_from).'"';
+		$r = db_query($link, $sql);
+
+		foreach ($r as $k => $item) {
+			unset($item['id'], $item['packed'], $item['inuse']);
+			$item['id_packlists'] = $id_packlists_to;
+			$item['created'] = date('Y-m-d H:i:s');
+
+			# check that relation is not there before
+			$sql = 'SELECT * FROM relations_packlists_items WHERE id_packlists="'.dbres($link, $id_packlists_to).'" AND id_items="'.dbres($link, $item['id_items']).'"';
+			$r_insert = db_query($link, $sql);
+			if (count($r_insert)) {
+				continue;
+			}
+
+			# insert packlist relation
+			$iu = dbpia($link, 	$item);
+			$sql = 'INSERT INTO relations_packlists_items ('.implode(',', array_keys($iu)).') VALUES('.implode(',', $iu).')';
+			# echo $sql."\n";
+			$r_insert = db_query($link, $sql);
+		}
+
+		# copy packlist items
+		$sql = 'SELECT * FROM packlist_items WHERE id_packlists="'.dbres($link, $id_packlists_from).'"';
+		$r = db_query($link, $sql);
+
+		foreach ($r as $k => $item) {
+			unset($item['id'], $item['updated'], $item['packed'], $item['inuse']);
+			$item['id_packlists'] = $id_packlists_to;
+			$item['created'] = date('Y-m-d H:i:s');
+
+			# check that item is not there before
+			$sql = 'SELECT * FROM packlist_items WHERE id_packlists="'.dbres($link, $id_packlists_to).'" AND title="'.dbres($link, $item['title']).'" AND weight="'.dbres($link, $item['weight']).'"';
+			$r_insert = db_query($link, $sql);
+			if (count($r_insert)) {
+				continue;
+			}
+
+			# insert packlist item
+			$iu = dbpia($link, 	$item);
+			$sql = 'INSERT INTO packlist_items ('.implode(',', array_keys($iu)).') VALUES('.implode(',', $iu).')';
+			# echo $sql."\n";
+			$r_insert = db_query($link, $sql);
+		}
 	}
 
 	function is_logged_in() {

@@ -31,6 +31,7 @@
 	# 2017-05-13 17:49:28 - adding packlist
 	# 2017-05-13 23:06:12 - adding packlist items
 	# 2017-05-21 20:41:41 - adding packlist inuse
+	# 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -45,16 +46,20 @@
 	$batteries_e = isset($_REQUEST['batteries_e']) ? $_REQUEST['batteries_e'] : false;
 	$materials = isset($_REQUEST['materials']) ? $_REQUEST['materials'] : false;
 	$category = isset($_REQUEST['category']) ? $_REQUEST['category'] : false;
+	$confirm = isset($_REQUEST['confirm']) ? $_REQUEST['confirm'] : false;
 	$contents = isset($_REQUEST['contents']) ? $_REQUEST['contents'] : false;
 	$description = isset($_REQUEST['description']) ? $_REQUEST['description'] : false;
 	$disposed = isset($_REQUEST['disposed']) ? $_REQUEST['disposed'] : false;
 	$find = isset($_REQUEST['find']) ? $_REQUEST['find'] : false;
+	$from = isset($_REQUEST['from']) ? $_REQUEST['from'] : false;
 	$id_categories_find = isset($_REQUEST['id_categories_find']) ? $_REQUEST['id_categories_find'] : false;
 	$id_categories = isset($_REQUEST['id_categories']) ? $_REQUEST['id_categories'] : false;
 	$id_files = isset($_REQUEST['id_files']) ? $_REQUEST['id_files'] : false;
 	$id_items = isset($_REQUEST['id_items']) ? $_REQUEST['id_items'] : false;
 	$id_locations = isset($_REQUEST['id_locations']) ? $_REQUEST['id_locations'] : false;
 	$id_packlists = isset($_REQUEST['id_packlists']) ? $_REQUEST['id_packlists'] : false;
+	$id_packlists_from = isset($_REQUEST['id_packlists_from']) ? $_REQUEST['id_packlists_from'] : false;
+	$id_packlists_to = isset($_REQUEST['id_packlists_to']) ? $_REQUEST['id_packlists_to'] : false;
 	$id_packlist_items = isset($_REQUEST['id_packlist_items']) ? $_REQUEST['id_packlist_items'] : false;
 	$id_relations_packlists_items = isset($_REQUEST['id_relations_packlists_items']) ? $_REQUEST['id_relations_packlists_items'] : false;
 	$inuse = isset($_REQUEST['inuse']) ? $_REQUEST['inuse'] : false;
@@ -68,6 +73,7 @@
 	$status = isset($_REQUEST['status']) ? $_REQUEST['status'] : false;
 	$ticket = isset($_REQUEST['ticket']) ? $_REQUEST['ticket'] : false;
 	$title = isset($_REQUEST['title']) ? $_REQUEST['title'] : false;
+	$to = isset($_REQUEST['to']) ? $_REQUEST['to'] : false;
 	$type = isset($_REQUEST['type']) ? $_REQUEST['type'] : false;
 	$watt = isset($_REQUEST['watt']) ? $_REQUEST['watt'] : false;
 	$watt_max = isset($_REQUEST['watt_max']) ? $_REQUEST['watt_max'] : false;
@@ -405,8 +411,31 @@
 			<input type="hidden" name="id_packlists" value="<?php echo isset($packlist['id']) ? $packlist['id'] : ''?>">
 
 			<div class="row">
-				<label for="title">Titel</label><input class="text" type="text" name="title" value="<?php echo isset($packlist['title']) ? $packlist['title'] : ''?>"><br>
+				<label for="title">Titel</label>
+				<input class="text" type="text" name="title" value="<?php echo isset($packlist['title']) ? $packlist['title'] : ''?>"><br>
 			</div>
+			<div class="row">
+				<label for="title">Datum från</label>
+				<input class="text" type="date" name="from" value="<?php echo isset($packlist['from']) ? substr($packlist['from'], 0, strpos($packlist['from'], ' ')) : ''?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" required>
+				<br>
+			</div>
+			<div class="row">
+				<label for="title">Datum till</label>
+				<input class="text" type="date" name="to" value="<?php echo isset($packlist['to']) ? substr($packlist['to'], 0, strpos($packlist['to'], ' ')) : ''?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" required>
+				<br>
+			</div>
+
+			<div class="row">
+				<label for="id_packlists_from">Kopiera från packlista</label>
+				<select name="id_packlists_from">
+					<option value="0">-- Kopiera inte</option>
+					<?php foreach($packlists_copy as $vx) { ?>
+					<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
+					<?php } ?>
+				</select>
+				<br>
+			</div>
+
 			<div class="row">
 				<input class="submit" type="submit" name="submit" value="Spara">
 			</div>
@@ -934,6 +963,8 @@
 			<thead>
 				<tr>
 					<th>Namn</th>
+					<th>Från</th>
+					<th>Till</th>
 					<th>Objekt</th>
 					<th>Vikt</th>
 					<th></th>
@@ -953,6 +984,12 @@
 				<tr>
 					<td>
 						<a href="?view=packlist&amp;id_packlists=<?php echo $v['id'] ?>"><?php echo $v['title'] ?></a>
+					</td>
+					<td>
+						<?php echo substr($v['from'], 0, strpos($v['from'], ' ')) ?>
+					</td>
+					<td>
+						<?php echo substr($v['to'], 0, strpos($v['to'], ' ')) ?>
 					</td>
 					<td>
 						<?php echo $v['item_amount'] ?> st
