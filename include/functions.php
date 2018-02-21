@@ -19,6 +19,7 @@
 	# 2017-05-21 20:42:15 - adding packlist inuse
 	# 2017-08-15 18:12:20 - getting visum base domain name from config
 	# 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
+	# 2018-02-22 22:21:00 - adding packlist item relation comment
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');
@@ -29,7 +30,7 @@
 	# CREATE TABLE items (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, id_categories INT NOT NULL, id_files INT NOT NULL DEFAULT 0, title TINYTEXT NOT NULL, description TEXT NOT NULL, batteries_aa INT NOT NULL DEFAULT 0, batteries_aaa INT NOT NULL DEFAULT 0, batteries_c INT NOT NULL DEFAULT 0, batteries_d INT NOT NULL DEFAULT 0, batteries_e INT NOT NULL DEFAULT 0, batteries_3r12 INT NOT NULL DEFAULT 0, materials tinytext not null, watt_max float, weight bigint not null default 0, price FLOAT NOT NULL, source TINYTEXT NOT NULL, location TINYTEXT NOT NULL, status INT NOT NULL DEFAULT 1, inuse INT NOT NULL, acquired DATETIME NOT NULL, disposed DATETIME NOT NULL, created DATETIME NOT NULL, updated DATETIME NOT NULL);
 	# CREATE TABLE categories (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, title TINYTEXT NOT NULL);
 	# CREATE TABLE packlists (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,	title TINYTEXT NOT NULL, `from` DATETIME NOT NULL, `to` DATETIME NOT NULL, updated DATETIME NOT NULL,	created DATETIME NOT NULL);
-	# CREATE TABLE relations_packlists_items (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, id_packlists INT NOT NULL, id_items INT NOT NULL, inuse int not null, packed INT NOT NULL DEFAULT 0, created DATETIME NOT NULL);
+	# CREATE TABLE relations_packlists_items (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, id_packlists INT NOT NULL, id_items INT NOT NULL, comment tinytext not null, inuse int not null, packed INT NOT NULL DEFAULT 0, created DATETIME NOT NULL);
 	# CREATE TABLE packlist_items (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, id_packlists INT NOT NULL, inuse int not null, packed INT NOT NULL DEFAULT 0, title TINYTEXT NOT NULL, weight INT NOT NULL DEFAULT 0, updated DATETIME NOT NULL, created DATETIME NOT NULL);
 	# CREATE TABLE inventory.users(id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, id_visum INT NOT NULL UNIQUE, nickname VARCHAR(16) NOT NULL, gender enum('0','1','2') NOT NULL, birth DATETIME NOT NULL, updated DATETIME NOT NULL, created DATETIME NOT NULL);
 ***REMOVED***

@@ -21,6 +21,7 @@
 # 2017-05-13 23:06:59 - adding packlist items
 # 2017-05-21 20:42:30 - adding packlist inuse
 # 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
+# 2018-02-22 22:21:00 - adding packlist item relation comment
 
 if (!isset($view)) die();
 
@@ -132,6 +133,31 @@ switch ($view) {
 		} else {
 			# sort by from, because some trips may not know the to-date
 			$packlists_copy = db_query($link, 'SELECT * FROM packlists ORDER BY `from` DESC');
+		}
+
+		break;
+	case 'edit_relation_packlists_items': # to update a packlist relation
+
+		$relation = false;
+
+		$sql = 'SELECT
+					rpi.id AS id_relation_packlists_items,
+					rpi.id_items,
+					rpi.id_packlists,
+					i.title,
+					rpi.comment
+				FROM
+					relations_packlists_items AS rpi
+						LEFT JOIN items AS i ON i.id = rpi.id_items
+				WHERE rpi.id="'.dbres($link, $id_relations_packlists_items).'"
+		';
+
+		# try to get that item
+		$relations = db_query($link, $sql);
+		# was there any matching items?
+		if (count($relations)) {
+			# then take the first of it
+			$relation = $relations[0];
 		}
 
 		break;
@@ -444,6 +470,7 @@ switch ($view) {
 			SELECT
 				i.id AS id_items,
 				rpi.id AS id_relations_packlists_items,
+				rpi.comment AS relation_comment,
 				i.title,
 				i.weight,
 				0 AS packlist_item,

@@ -19,6 +19,7 @@
 # 2017-05-13 23:06:26 - adding packlist items
 # 2017-05-21 20:42:04 - adding packlist inuse
 # 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
+# 2018-02-22 22:21:00 - adding packlist item relation comment
 
 if (!isset($action)) die();
 
@@ -587,6 +588,20 @@ switch ($action) {
 			'status' => true
 		));
 		die();
+
+	case 'update_relation_packlists_items':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_relations_packlists_items)) die('Missing id_relations_packlists_items.');
+
+		$iu = dbpua($link, array(
+			'comment' => $comment
+		));
+		$sql = 'UPDATE relations_packlists_items SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_relations_packlists_items).'"';
+		db_query($link, $sql);
+
+		break;
 
 	case 'delete_packlist':
 

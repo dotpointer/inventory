@@ -32,6 +32,7 @@
 	# 2017-05-13 23:06:12 - adding packlist items
 	# 2017-05-21 20:41:41 - adding packlist inuse
 	# 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
+	# 2018-02-22 22:21:00 - adding packlist item relation comment
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -46,6 +47,7 @@
 	$batteries_e = isset($_REQUEST['batteries_e']) ? $_REQUEST['batteries_e'] : false;
 	$materials = isset($_REQUEST['materials']) ? $_REQUEST['materials'] : false;
 	$category = isset($_REQUEST['category']) ? $_REQUEST['category'] : false;
+	$comment = isset($_REQUEST['comment']) ? $_REQUEST['comment'] : false;
 	$confirm = isset($_REQUEST['confirm']) ? $_REQUEST['confirm'] : false;
 	$contents = isset($_REQUEST['contents']) ? $_REQUEST['contents'] : false;
 	$description = isset($_REQUEST['description']) ? $_REQUEST['description'] : false;
@@ -436,6 +438,37 @@
 				<br>
 			</div>
 
+			<div class="row">
+				<input class="submit" type="submit" name="submit" value="Spara">
+			</div>
+		</fieldset>
+	</form>
+<?php
+			break;
+
+
+		case 'edit_relation_packlists_items': # to insert or update a packlist
+			if (!is_logged_in()) {
+				print_login();
+				break;
+			}
+?>
+	<h2>Redigera packlisteobjekt-relation<?php
+?></h2>
+	<form action="?view=packlist&id_packlists=<?php echo isset($relation['id_packlists']) ? $relation['id_packlists'] : ''?>" method="post">
+		<fieldset>
+			<input type="hidden" name="action" value="update_relation_packlists_items">
+			<input type="hidden" name="id_relations_packlists_items" value="<?php echo isset($relation['id_relation_packlists_items']) ? $relation['id_relation_packlists_items'] : ''?>">
+
+			<div class="row">
+				<label for="title">Objekt</label>
+				<span class="value"><?php echo $relation['title']; ?></span><br>
+			</div>
+			<div class="row">
+				<label for="title">Kommentar</label>
+				<input class="text" type="text" name="comment" value="<?php echo $relation['comment'] ?>">
+				<br>
+			</div>
 			<div class="row">
 				<input class="submit" type="submit" name="submit" value="Spara">
 			</div>
@@ -875,7 +908,14 @@
 <?php
 				if (!(int)$v['packlist_item']) { ?>
 						<a href="?view=index&id_items=<?php echo $v['id_items'] ?>"><?php echo $v['title'] ?></a>
-<?php			} else {
+<?php
+					if (strlen($v['relation_comment'])) {
+?>
+						<br>
+						&nbsp;<i><?php echo $v['relation_comment'] ?></i>
+<?php
+					}
+				} else {
 					echo $v['title'];
 				}
 ?>
@@ -914,12 +954,13 @@
 						# is this a regular item
 				if (!(int)$v['packlist_item']) {
 ?>
+						<a href="?view=edit_relation_packlists_items&amp;id_relations_packlists_items=<?php echo $v['id_relations_packlists_items'] ?>">Redigera</a>
 						<a href="?action=delete_relation_packlists_items&amp;id_relations_packlists_items=<?php echo $v['id_relations_packlists_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>" class="confirm">Radera</a>
 <?php
 				# or is this a packlist item
 				} else {
 ?>
-						<a href="?" class="edit_packlist_item" data-id-packlist-items="<?php echo $v['id_packlist_items'] ?>" data-weight="<?php echo $v['weight'] ?>" data-title="<?php echo $v['title'] ?>">Redigera</a>
+						<a href="?" class="edit_packlist_item" data-id-packlist-items="<?php echo $v['id_packlist_items'] ?>" data-weight="<?php echo $v['weight'] ?>" data-title="<?php echo $v['title'] ?>">Redigera objekt</a>
 						<a href="?action=delete_packlist_item&amp;id_packlist_items=<?php echo $v['id_packlist_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>" class="confirm">Radera</a>
 <?php
 				}
