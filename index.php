@@ -33,6 +33,7 @@
 	# 2017-05-21 20:41:41 - adding packlist inuse
 	# 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 	# 2018-02-22 22:21:00 - adding packlist item relation comment
+	# 2018-03-10 22:03:00 - adjusting packlist listings
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -588,7 +589,11 @@
 									<label>Lägg till packlista</label>
 									<input type="hidden" value="<?php echo $v['id'] ?>" name="id_items" >
 									<select>
-										<?php foreach($packlists as $vx) { ?>
+										<?php foreach($packlists as $vx) {
+											if (strtotime($vx['to']) < time()) {
+												continue;
+											}
+										?>
 										<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
 										<?php } ?>
 									</select>
@@ -998,8 +1003,25 @@
 				print_login();
 				break;
 			}
+
+			$packlisttype = array(
+				0 => 'Kommande'
+				1 => 'Pågående'
+				2 => 'Avslutade'
+			);
+
+			for ($f = 0; $f < 3; $f +=1 ) {
+
 ?>
-		<h2>Packlistor<div class="action"><a href="?view=edit_packlist">Ny</a></div></h2>
+		<h2>
+			Packlistor - <?php echo $packlisttype[$f];
+
+				if ($f === 0) { ?>
+			<div class="action"><a href="?view=edit_packlist">Ny</a></div>
+<?php
+				}
+?>
+		</h2>
 		<table>
 			<thead>
 				<tr>
@@ -1011,16 +1033,23 @@
 					<th></th>
 				</tr>
 			</thead>
-<?php 		# walk packlists one by one
-			$x = 0;
-			foreach ($packlists as $k => $v) {
-				$x += $v['item_amount'];
-			}
-?>
 			<tbody>
 <?php 		# walk packlists one by one
-			foreach ($packlists as $k => $v) {
+				foreach ($packlists as $k => $v) {
+					# coming, but from field is less than or equal to now
+					if ($f === 0 && strtotime($v['from']) <= time()) {
+						continue;
+					}
 
+					# current, but from field is after now or to field is before now
+					if ($f === 1 && (strtotime($v['from']) > time() || strtotime($v['to']) < time())) {
+						continue;
+					}
+
+					# passed, but to field is more than or equal to now
+					if ($f === 2 && strtotime($v['to']) >= time()) {
+						continue;
+					}
 ?>
 				<tr>
 					<td>
@@ -1044,11 +1073,12 @@
 					</td>
 				</tr>
 <?php
-			} # eof-foreach-packlists
+				} # eof-foreach-packlists
 ?>
 			</tbody>
 		</table>
 <?php
+			}
 			break;
 
 	}
