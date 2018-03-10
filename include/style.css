@@ -219,8 +219,16 @@ table tbody tr td {
 	font-family: Courier, monospace;
 }
 
-table tbody tr:nth-child(even) td {
+table tbody tr:hover {
+    background-color: #050505;
+}
+
+table tbody tr:nth-child(even) {
 	background-color: #151515;
+}
+
+table tbody tr:nth-child(even):hover {
+	background-color: #252525;
 }
 
 table tbody tr td.description {
