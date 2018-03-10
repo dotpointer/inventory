@@ -1005,8 +1005,8 @@
 			}
 
 			$packlisttype = array(
-				0 => 'Kommande'
-				1 => 'Pågående'
+				0 => 'Kommande',
+				1 => 'Pågående',
 				2 => 'Avslutade'
 			);
 
