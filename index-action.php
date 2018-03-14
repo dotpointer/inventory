@@ -20,6 +20,7 @@
 # 2017-05-21 20:42:04 - adding packlist inuse
 # 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 # 2018-02-22 22:21:00 - adding packlist item relation comment
+# 2018-03-14 23:02:00 - adding criterias handling
 
 if (!isset($action)) die();
 
@@ -93,6 +94,39 @@ switch ($action) {
 		}
 
 		break;
+
+	case 'insert_update_criteria': # to insert or update a criteria
+		if (!is_logged_in()) break;
+		# if (!$id_criterias) die('id_criterias is missing.');
+
+		# make sure required fields are filled in
+		if (strlen($title) < 3) die('Fields are not filled in.');
+
+		# make an array to insert or update
+		$iu = array(
+			'title' => $title,
+			'add_to_new_packlists' => $add_to_new_packlists,
+			'interval_days' => $interval_days,
+		);
+
+		# is this an existing item?
+		if ($id_criterias) {
+			$iu['updated'] = date('Y-m-d H:i:s');
+			$iu = dbpua($link, $iu);
+			$sql = 'UPDATE criterias SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_criterias).'"';
+			db_query($link, $sql);
+		# or is it a new item?
+		} else {
+			$iu['created'] = date('Y-m-d H:i:s');
+			$iu['updated'] = date('Y-m-d H:i:s');
+			$iu = dbpia($link, $iu);
+			$sql = 'INSERT INTO criterias ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
+			db_query($link, $sql);
+			$id_criterias = db_insert_id($link);
+		}
+
+		break;
+
 	case 'insert_update_location': # to insert or update a location
 		if (!is_logged_in()) break;
 		# if (!$id_locations) die('id_locations is missing.');
@@ -528,6 +562,7 @@ switch ($action) {
 		break;
 
 	case 'insert_update_packlist': # to insert or update a packlist
+
 		if (!is_logged_in()) break;
 		# if (!$id_packlists) die('id_packlists is missing.');
 
@@ -560,6 +595,50 @@ switch ($action) {
 		# is packlist copying requested
 		if ($id_packlists_from) {
 			copy_packlist($link, $id_packlists_from, $id_packlists);
+		}
+
+		$id_criterias = is_array($id_criterias) ? $id_criterias : array();
+
+		foreach ($id_criterias as $k => $v) {
+			$id_criterias[$k] = dbres($link, $v);
+		}
+
+		# remove all relations between criterias and packlists matching this packlist but not the desired criteria id:s
+		$sql = 'DELETE FROM
+					relations_criterias_packlists
+				WHERE
+					id_packlists="'.dbres($link, $id_packlists).'"
+					'.(count($id_criterias) ? 'AND id_criterias NOT IN ('.implode($id_criterias, ',').')' : '');
+		db_query($link, $sql);
+
+		# are there any criterias to add?
+		if (count($id_criterias)) {
+			# get all criterias that are in the id list, but not in the relations table
+			$sql = 'SELECT
+						id
+					FROM
+						criterias WHERE id IN ('.implode($id_criterias, ',').')
+						AND id NOT IN (
+							SELECT
+								id_criterias
+							FROM
+								relations_criterias_packlists
+							WHERE
+								id_packlists="'.dbres($link, $id_packlists).'"
+						)
+					';
+			$r = db_query($link, $sql);
+			# walk the ids that needs to be added
+			foreach ($r as $k => $v) {
+				$iu = array(
+					'id_criterias' => $v['id'],
+					'id_packlists' => $id_packlists,
+					'created' => date('Y-m-d H:i:s')
+				);
+				$iu = dbpia($link, $iu);
+				$sql = 'INSERT INTO relations_criterias_packlists ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
+				db_query($link, $sql);
+			}
 		}
 
 		break;
@@ -601,6 +680,24 @@ switch ($action) {
 		$sql = 'UPDATE relations_packlists_items SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_relations_packlists_items).'"';
 		db_query($link, $sql);
 
+		break;
+
+	case 'delete_criteria':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_criterias)) die('Missing id_criterias parameter.');
+
+		# delete criteria relations
+		$sql = 'DELETE FROM relations_criterias_items WHERE id_criterias="'.dbres($link, $id_criterias).'"';
+		$r = db_query($link, $sql);
+
+		$sql = 'DELETE FROM relations_criterias_packlists WHERE id_criterias="'.dbres($link, $id_criterias).'"';
+		$r = db_query($link, $sql);
+
+		# delete criteria
+		$sql = 'DELETE FROM criterias WHERE id="'.dbres($link, $id_criterias).'"';
+		db_query($link, $sql);
 		break;
 
 	case 'delete_packlist':

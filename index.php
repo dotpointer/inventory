@@ -34,10 +34,12 @@
 	# 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 	# 2018-02-22 22:21:00 - adding packlist item relation comment
 	# 2018-03-10 22:03:00 - adjusting packlist listings
+	# 2018-03-14 23:02:00 - adding criterias handling
 
 	# get required functionality
 	require_once('include/functions.php');
 
+	$add_to_new_packlists = isset($_REQUEST['add_to_new_packlists']) ? $_REQUEST['add_to_new_packlists'] : false;
 	$acquired = isset($_REQUEST['acquired']) ? $_REQUEST['acquired'] : false;
 	$action = isset($_REQUEST['action']) ? $_REQUEST['action'] : false;
 	$batteries_3r12 = isset($_REQUEST['batteries_3r12']) ? $_REQUEST['batteries_3r12'] : false;
@@ -57,6 +59,7 @@
 	$from = isset($_REQUEST['from']) ? $_REQUEST['from'] : false;
 	$id_categories_find = isset($_REQUEST['id_categories_find']) ? $_REQUEST['id_categories_find'] : false;
 	$id_categories = isset($_REQUEST['id_categories']) ? $_REQUEST['id_categories'] : false;
+	$id_criterias = isset($_REQUEST['id_criterias']) ? $_REQUEST['id_criterias'] : false;
 	$id_files = isset($_REQUEST['id_files']) ? $_REQUEST['id_files'] : false;
 	$id_items = isset($_REQUEST['id_items']) ? $_REQUEST['id_items'] : false;
 	$id_locations = isset($_REQUEST['id_locations']) ? $_REQUEST['id_locations'] : false;
@@ -65,6 +68,7 @@
 	$id_packlists_to = isset($_REQUEST['id_packlists_to']) ? $_REQUEST['id_packlists_to'] : false;
 	$id_packlist_items = isset($_REQUEST['id_packlist_items']) ? $_REQUEST['id_packlist_items'] : false;
 	$id_relations_packlists_items = isset($_REQUEST['id_relations_packlists_items']) ? $_REQUEST['id_relations_packlists_items'] : false;
+	$interval_days = isset($_REQUEST['interval_days']) ? $_REQUEST['interval_days'] : false;
 	$inuse = isset($_REQUEST['inuse']) ? $_REQUEST['inuse'] : false;
 	$limit = isset($_REQUEST['limit']) ? $_REQUEST['limit'] : 25;
 	$location = isset($_REQUEST['location']) ? $_REQUEST['location'] : false;
@@ -188,6 +192,49 @@
 			<input type="hidden" name="id_categories" value="<?php echo isset($category['id']) ? $category['id'] : ''?>">
 			<label for="title">Titel</label><input class="text" type="text" name="title" value="<?php echo isset($category['title']) ? $category['title'] : ''?>"><br>
 			<input class="submit" type="submit" name="submit" value="Spara">
+		</fieldset>
+	</form>
+<?php
+			break;
+
+		case 'edit_criteria': # to insert or update a criteria
+			if (!is_logged_in()) {
+				print_login();
+				break;
+			}
+?>
+	<h2>Redigera kriterium<?php
+		if (isset($criteria['id'])) {
+			echo ' #'.$criteria['id'];
+		}
+?></h2>
+	<form action="?action=insert_update_criteria" method="post">
+		<fieldset>
+			<input type="hidden" name="view" value="criterias">
+			<input type="hidden" name="id_criterias" value="<?php echo isset($criteria['id']) ? $criteria['id'] : ''?>">
+
+			<div class="row">
+				<label for="title">Titel</label>
+				<input class="text" type="text" name="title" value="<?php echo isset($criteria['title']) ? $criteria['title'] : ''?>"><br>
+			</div>
+
+			<div class="row">
+				<label for="title">Dagsintervall</label>
+				<input class="text" type="number" name="interval_days" value="<?php echo isset($criteria['interval_days']) ? $criteria['interval_days'] : ''?>"><br>
+			</div>
+
+			<div class="row">
+				<label for="title">Lägg till nya packlistor</label>
+				<select name="add_to_new_packlists">
+					<option value="0">Nej</option>
+					<option value="1"<?php echo isset($criteria['add_to_new_packlists']) && (int)$criteria['add_to_new_packlists'] ? ' selected="selected' : ''?>>Ja</option>
+				</select>
+				<br>
+			</div>
+
+			<div class="row">
+				<input class="submit" type="submit" name="submit" value="Spara">
+			</div>
 		</fieldset>
 	</form>
 <?php
@@ -436,6 +483,38 @@
 					<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
 					<?php } ?>
 				</select>
+				<br>
+			</div>
+
+			<div class="row">
+				<label for="id_packlists_from">Kriterier</label>
+				<div class="selectbox_left">
+					<div class="subheader">Tillgängliga:</div>
+					<select multiple id="select_criterias_available">
+						<?php foreach ($criterias_available as $ca) { ?>
+						<option value="<?php echo $ca['id'] ?>"><?php echo $ca['title'] ?></option>
+						<?php } ?>
+					</select>
+				</div>
+				<div class="selectbox_center">
+					<br>
+					<button id="button_criterias_remove">&lt;&lt;</button>
+					<br>
+					<button id="button_criterias_add">&gt;&gt;</button>
+				</div>
+				<div class="selectbox_right">
+					<div class="subheader">Valda:</div>
+					<select multiple id="select_criterias_selected">
+						<?php foreach ($criterias_selected as $cs) { ?>
+						<option value="<?php echo $cs['id'] ?>"><?php echo $cs['title'] ?></option>
+						<?php } ?>
+					</select>
+					<div id="hidden_selected_criterias">
+						<?php foreach ($criterias_selected as $cs) { ?>
+						<input type="hidden" value="<?php echo $cs['id'] ?>" name="id_criterias[]">
+						<?php } ?>
+					</div>
+				</div>
 				<br>
 			</div>
 
@@ -1018,6 +1097,7 @@
 
 				if ($f === 0) { ?>
 			<div class="action"><a href="?view=edit_packlist">Ny</a></div>
+			<div class="action"><a href="?view=criterias">Kriterier</a>&nbsp;</div>
 <?php
 				}
 ?>
@@ -1079,6 +1159,57 @@
 		</table>
 <?php
 			}
+			break;
+
+		case 'criterias': # to list criterias
+			if (!is_logged_in()) {
+				print_login();
+				break;
+			}
+?>
+		<h2>
+			Kriterier
+			<div class="action"><a href="?view=edit_criteria">Ny</a></div>
+		</h2>
+		<table>
+			<thead>
+				<tr>
+					<th>Namn</th>
+					<th>Dagsintervall</th>
+					<th>Ny-aktiv</th>
+					<th>Objekt</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+
+<?php			# walk criterias one by one
+				foreach ($criterias as $k => $v) {
+?>
+				<tr>
+					<td>
+						<a href="?view=criteria&amp;id_criterias=<?php echo $v['id'] ?>"><?php echo $v['title'] ?></a>
+					</td>
+					<td>
+						<?php echo $v['interval_days'] ?>
+					</td>
+					<td>
+						<?php echo (int)$v['add_to_new_packlists'] ? 'Ja' : 'Nej' ?>
+					</td>
+					<td class="counter">
+						<?php echo $v['item_amount'] ?> st
+					</td>
+					<td class="manage">
+						<a href="?action=delete_criteria&amp;id_criterias=<?php echo $v['id'] ?>&view=criterias" class="confirm">Radera</a>
+						<a href="?view=edit_criteria&amp;id_criterias=<?php echo $v['id'] ?>">Redigera</a>
+					</td>
+				</tr>
+<?php
+				}
+?>
+			</tbody>
+		</table>
+<?php
 			break;
 
 	}

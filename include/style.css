@@ -75,6 +75,35 @@ form fieldset .row {
 	padding-right: 5px;
 }
 
+form fieldset .row .selectbox_left {
+		float: left;
+}
+
+form fieldset .row .selectbox_right {
+		float: left;
+}
+
+form fieldset .row .selectbox_center {
+		float: left;
+}
+
+form fieldset .row .selectbox_left br,
+form fieldset .row .selectbox_center br,
+form fieldset .row .selectbox_right br {
+	clear: none;
+}
+
+form fieldset .row .selectbox_left select,
+form fieldset .row .selectbox_right select {
+		min-width: 180px;
+		min-height: 90px;
+}
+
+form fieldset .row .selectbox_left .subheader,
+form fieldset .row .selectbox_right .subheader {
+	font-family: Courier, monospace;
+}
+
 form fieldset .row:nth-child(even) {
         background-color: #151515;
 /*	background-color: #c0c0c0; */

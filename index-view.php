@@ -22,6 +22,7 @@
 # 2017-05-21 20:42:30 - adding packlist inuse
 # 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 # 2018-02-22 22:21:00 - adding packlist item relation comment
+# 2018-03-14 23:02:00 - adding criterias handling
 
 if (!isset($view)) die();
 
@@ -47,6 +48,24 @@ switch ($view) {
 				$category = $categories[0];
 			}
 		}
+		break;
+
+	case 'edit_criteria': # to edit a criteria
+		if (!is_logged_in()) break;
+
+		$criteria = false;
+
+		# is item id specified?
+		if ($id_criterias) {
+			# try to get that item
+			$criterias = db_query($link, 'SELECT * FROM criterias WHERE id="'.dbres($link, $id_criterias).'"');
+			# was there any matching items?
+			if (count($criterias)) {
+				# then take the first of it
+				$criteria = $criterias[0];
+			}
+		}
+
 		break;
 
 	case 'edit_item': # to edit an item
@@ -119,6 +138,8 @@ switch ($view) {
 
 		$packlist = false;
 
+
+
 		# is item id specified?
 		if ($id_packlists) {
 			# try to get that item
@@ -127,10 +148,39 @@ switch ($view) {
 			if (count($packlists)) {
 				# then take the first of it
 				$packlist = $packlists[0];
+
+				$criterias_selected =  db_query($link, 'SELECT id_criterias AS id FROM relations_criterias_packlists WHERE id_packlists="'.dbres($link, $id_packlists).'"');
 			}
+			$criterias_available = db_query($link, '
+				SELECT
+					*
+				FROM
+					criterias
+				WHERE
+					id NOT IN (
+						SELECT
+							id_criterias
+						FROM
+							relations_criterias_packlists
+						WHERE
+							id_packlists="'.dbres($link, $id_packlists).'"
+				)');
+			$criterias_selected =  db_query($link, '
+				SELECT
+					rcp.id_criterias AS id,
+					c.title
+				FROM
+					relations_criterias_packlists AS rcp
+					LEFT JOIN criterias AS c ON rcp.id_criterias = c.id
+				WHERE
+					rcp.id_packlists="'.dbres($link, $id_packlists).'"
+			');
+
 			# sort by from, because some trips may not know the to-date
 			$packlists_copy = db_query($link, 'SELECT * FROM packlists WHERE NOT id="'.dbres($link, $id_packlists).'" ORDER BY `from` DESC');
 		} else {
+			$criterias_available = db_query($link, 'SELECT * FROM criterias WHERE add_to_new_packlists=0');
+			$criterias_selected = db_query($link, 'SELECT * FROM criterias WHERE add_to_new_packlists=1');
 			# sort by from, because some trips may not know the to-date
 			$packlists_copy = db_query($link, 'SELECT * FROM packlists ORDER BY `from` DESC');
 		}
@@ -539,6 +589,35 @@ switch ($view) {
 		$packlists = db_query($link, $sql);
 		break;
 
+	case 'criterias': # to display criterias
+		if (!is_logged_in()) break;
+
+		$sql = 'SELECT
+					c.id,
+					c.title,
+					c.interval_days,
+					c.add_to_new_packlists,
+					IFNULL(irci.item_amount, 0) AS item_amount
+				FROM
+					criterias AS c
+					LEFT JOIN (
+						SELECT
+							id_criterias,
+							COUNT(i.id) AS item_amount
+						FROM
+							items AS i,
+							relations_criterias_items AS rci
+						WHERE
+							i.id = rci.id_items
+						GROUP BY
+							rci.id_criterias
+					) AS irci ON irci.id_criterias = c.id
+				ORDER BY
+					c.id DESC
+				';
+
+		$criterias = db_query($link, $sql);
+		break;
 }
 
 ?>

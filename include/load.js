@@ -110,6 +110,59 @@
 				$('input[name="title"]').focus();
 
 				break;
+			case 'edit_packlist':
+
+				$('#button_criterias_remove').click(function(e) {
+					$('#select_criterias_selected option:selected').each(function() {
+						if (!$('#select_criterias_available option[value="' + this.value + '"]').size()) {
+							$('#select_criterias_available')
+								.append(
+									$('<option>')
+										.val(this.value)
+										.text(this.text)
+								);
+						}
+
+						$('#hidden_selected_criterias input[value="' + this.value + '"]').remove();
+						$(this).remove();
+					});
+
+					e.preventDefault();
+					return false;
+				});
+
+				$('#button_criterias_add').click(function(e) {
+					$('#select_criterias_available option:selected').each(function() {
+						// add it to the select box
+						if (!$('#select_criterias_selected option[value="' + this.value + '"]').size()) {
+							$('#select_criterias_selected')
+								.append(
+									$('<option>')
+										.val(this.value)
+										.text(this.text)
+								);
+						}
+
+						// add the hidden input
+						if (!$('#hidden_selected_criterias input[value="' + this.value + '"]').size()) {
+							$('#hidden_selected_criterias').append(
+								$('<input/>')
+									.attr({
+										name: 'id_criterias[]',
+										type: 'hidden'
+									})
+									.val(this.value)
+							);
+						}
+
+						$(this).remove();
+					});
+
+					e.preventDefault();
+					return false;
+				});
+
+				break;
 			case 'index':
 
 				$('form.form_add_item_to_packlist').on('submit', function(e) {
@@ -120,7 +173,6 @@
 						// when done, show result list, forward result data
 						$(this).find('.status').remove();
 
-						console.log($(this).find('input[type="submit"]'));
 						$(this).find('input[type="submit"]:first').after(
 							$('<span>')
 								.addClass('status')

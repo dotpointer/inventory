@@ -20,6 +20,7 @@
 	# 2017-08-15 18:12:20 - getting visum base domain name from config
 	# 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 	# 2018-02-22 22:21:00 - adding packlist item relation comment
+	# 2018-03-14 23:02:00 - adding criterias handling
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');
@@ -41,6 +42,9 @@
 	# CREATE TABLE locations(id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, id_files INT NOT NULL DEFAULT 0, title TINYTEXT NOT NULL);
 
 	# CREATE TABLE files (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, mime TINYTEXT NOT NULL, created DATETIME NOT NULL);
+	# CREATE TABLE criterias (id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT, title TINYTEXT NOT NULL, interval_days INT NOT NULL, add_to_new_packlists INT NOT NULL, updated DATETIME NOT NULL, created DATETIME NOT NULL);
+	# CREATE TABLE relations_criterias_items (id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT, id_criterias BIGINT NOT NULL, id_items BIGINT NOT NULL, created DATETIME NOT NULL);
+	# CREATE TABLE relations_criterias_packlists (id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT, id_criterias BIGINT NOT NULL, id_packlists BIGINT NOT NULL, created DATETIME NOT NULL);
 
 	/*
 		1 = own
