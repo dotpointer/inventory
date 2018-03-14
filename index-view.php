@@ -23,6 +23,7 @@
 # 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 # 2018-02-22 22:21:00 - adding packlist item relation comment
 # 2018-03-14 23:02:00 - adding criterias handling
+# 2018-03-14 23:44:00 - adding criterias handling continued
 
 if (!isset($view)) die();
 
@@ -553,6 +554,44 @@ switch ($view) {
 		# walk packlist items and add to items
 		foreach ($packlist_items as $item) {
 			$items[] = $item;
+		}
+
+		$criterias = db_query($link, '
+			SELECT
+				rcp.id_criterias,
+				rcp.id_packlists,
+				c.title,
+				c.interval_days
+			FROM criterias AS c,
+				relations_criterias_packlists AS rcp
+			WHERE
+				c.id=rcp.id_criterias
+				AND rcp.id_packlists = "'.dbres($link, $id_packlists).'"'
+		);
+
+		if (count($criterias)) {
+
+			$days = ((strtotime($packlist['to']) - strtotime($packlist['from']))  / (60 * 60 * 24)) + 1;
+
+			foreach ($criterias as $k => $v) {
+
+				$criterias[$k]['multiplier'] = 0;
+
+				$daycounter = 0;
+				# walk the days in the packlist
+				for ($i=1; $i <= $days; $i++) {
+
+					$daycounter += 1;
+
+					# has the daycounter reached the criteria day interval
+					if ($daycounter >= (int)$v['interval_days']) {
+						# increment the multiplier
+						$criterias[$k]['multiplier'] += 1;
+						# reset the day counter
+						$daycounter = 0;
+					}
+				}
+			}
 		}
 
 		break;

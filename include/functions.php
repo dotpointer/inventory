@@ -21,6 +21,7 @@
 	# 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 	# 2018-02-22 22:21:00 - adding packlist item relation comment
 	# 2018-03-14 23:02:00 - adding criterias handling
+	# 2018-03-14 23:44:00 - adding criterias handling continued
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');

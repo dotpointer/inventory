@@ -124,12 +124,23 @@ h2 div.action {
 	font-size: 75%;
 }
 
+h3 {
+	font-family: Courier, monospace;
+	padding-left: 40px;
+	padding-right: 40px;
+	margin-top: 0;
+	margin-bottom: 0;
+	color: #fff;
+}
+
+
 h4 {
 	text-align: center;
 	padding-left: 5px;
 	padding-right: 5px;
 }
-ul {
+
+ul.menu {
 	padding: 0px;
 	border-bottom: 2px solid #000;
 	background-color: #000;
@@ -139,29 +150,39 @@ ul {
 
 ul li {
 	color: #fff;
-	margin-left: 5px;
-	margin-right: 5px;
 	font-family: Courier, monospace;
+}
+
+ul.menu li {
 	font-size: 16px;
 	display: inline-block;
 	line-height: 23px;
+	margin-left: 5px;
+	margin-right: 5px;
 }
+
 ul li a {
-	font-size: 16px;
 	color: #fff;
+}
+
+ul.menu li a {
 	padding-top: 5px;
 	display: inline-block;
+	font-size: 16px;
 }
-ul li form {
+
+ul.menu li form {
 	display: inline;
 }
-ul li form fieldset {
+
+ul.menu li form fieldset {
 	display: inline;
 	border: none;
 	padding: 0;
 	margin: 0;
 }
-ul li form fieldset label {
+
+ul.menu li form fieldset label {
 	float: left;
 	width: auto;
 	margin-left: 5px;
@@ -171,12 +192,12 @@ ul li form fieldset label {
 	display: inline-block;
 }
 
-ul li form fieldset input.submit {
+ul.menu li form fieldset input.submit {
 	float: left;
 	margin-left: 5px;
 }
 
-ul li form fieldset input.text {
+ul.menu li form fieldset input.text {
 	margin:0;
 	margin-left: 5px;
 	font-size: 16px;
@@ -186,7 +207,7 @@ ul li form fieldset input.text {
 	float: left
 }
 
-ul li form fieldset select {
+ul.menu li form fieldset select {
 	margin:0;
 	margin-left: 5px;
 	font-size: 16px;

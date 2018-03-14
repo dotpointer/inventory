@@ -35,6 +35,7 @@
 	# 2018-02-22 22:21:00 - adding packlist item relation comment
 	# 2018-03-10 22:03:00 - adjusting packlist listings
 	# 2018-03-14 23:02:00 - adding criterias handling
+	# 2018-03-14 23:44:00 - adding criterias handling continued
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -121,7 +122,7 @@
 
 </head>
 <body>
-	<ul>
+	<ul class="menu">
 		<li><a href="?view=index">Inventarier</a></li>
 <?php 		if (is_logged_in()) { ?>
 		<li><a href="?view=categories">Kategorier</a></li>
@@ -942,6 +943,23 @@
 			}
 ?>
 		<h2>Packlista <?php echo $packlist['title']; ?> <a href="?view=edit_packlist&amp;id_packlists=<?php echo $packlist['id']; ?>">Redigera</a></div></h2>
+
+<?php
+		if ($criterias) {
+?>
+		<br>
+		<h3>Kriterier</h3>
+		<ul>
+			<?php foreach ($criterias as $criteria) { ?>
+			<li>
+				<?php echo $criteria['title'] ?> x <?php echo $criteria['multiplier'] ?>
+			</li>
+			<?php } ?>
+		</ul>
+		<br>
+<?php
+		}
+?>
 		<table>
 			<thead>
 				<tr>
