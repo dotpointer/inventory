@@ -34,8 +34,9 @@
 	# 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 	# 2018-02-22 22:21:00 - adding packlist item relation comment
 	# 2018-03-10 22:03:00 - adjusting packlist listings
-	# 2018-03-14 23:02:00 - adding criterias handling
-	# 2018-03-14 23:44:00 - adding criterias handling continued
+	# 2018-03-14 23:02:00 - adding criteria handling
+	# 2018-03-14 23:44:00 - adding criteria handling continued
+	# 2018-03-15 00:47:00 - adding criteria handling continued
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -68,6 +69,7 @@
 	$id_packlists_from = isset($_REQUEST['id_packlists_from']) ? $_REQUEST['id_packlists_from'] : false;
 	$id_packlists_to = isset($_REQUEST['id_packlists_to']) ? $_REQUEST['id_packlists_to'] : false;
 	$id_packlist_items = isset($_REQUEST['id_packlist_items']) ? $_REQUEST['id_packlist_items'] : false;
+	$id_relations_criterias_items = isset($_REQUEST['id_relations_criterias_items']) ? $_REQUEST['id_relations_criterias_items'] : false;
 	$id_relations_packlists_items = isset($_REQUEST['id_relations_packlists_items']) ? $_REQUEST['id_relations_packlists_items'] : false;
 	$interval_days = isset($_REQUEST['interval_days']) ? $_REQUEST['interval_days'] : false;
 	$inuse = isset($_REQUEST['inuse']) ? $_REQUEST['inuse'] : false;
@@ -680,6 +682,19 @@
 									<input type="submit" value="OK" >
 								</div>
 							</form>
+
+							<form class="form_add_item_to_criteria">
+								<div>
+									<label>Lägg till kriterium</label>
+									<input type="hidden" value="<?php echo $v['id'] ?>" name="id_items" >
+									<select>
+										<?php foreach($criterias as $vx) { ?>
+										<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
+										<?php } ?>
+									</select>
+									<input type="submit" value="OK" >
+								</div>
+							</form>
 						</p>
 					</td>
 					<td>
@@ -823,7 +838,58 @@
 		</table>
 <?php
 			break;
+		case 'criteria': # to show a criteria
+			if (!is_logged_in()) {
+				print_login();
+				break;
+			}
+?>
+		<h2>Kriterium <?php echo $criteria['title']; ?> <a href="?view=edit_criteria&amp;id_criterias=<?php echo $criteria['id']; ?>">Redigera</a></div></h2>
 
+		<h3>Summering</h3>
+		<ul>
+			<li>
+				Dagsintervall: <?php echo $criteria['interval_days'] ?>
+			</li>
+			<li>
+				Lägg till nya packlistor: <?php echo (int)$criteria['add_to_new_packlists'] ? 'Ja' : 'Nej' ?>
+			</li>
+		</ul>
+		<br>
+
+		<h3>Objekt som krävs av kriteriet</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>Objekt</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tfoot>
+				<tr>
+					<td>Totalt</td>
+					<td><?php echo count($items); ?> st</td>
+				</tr>
+			</tfoot>
+			<tbody>
+<?php 		# walk items in criteria one by one
+			foreach ($items as $k => $v) {
+?>
+				<tr>
+					<td>
+						<a href="?view=index&id_items=<?php echo $v['id_items'] ?>"><?php echo $v['title'] ?></a>
+					</td>
+					<td class="manage">
+						<a href="?action=delete_relation_criterias_items&amp;id_relations_criterias_items=<?php echo $v['id_relations_criterias_items'] ?>&view=criteria&id_criterias=<?php echo $criteria['id'] ?>" class="confirm">Radera</a>
+					</td>
+				</tr>
+<?php
+			} # eof-foreach-criteria
+?>
+			</tbody>
+		</table>
+<?php
+			break;
 		case 'locations': # to list item locations
 			if (!is_logged_in()) {
 				print_login();
@@ -950,11 +1016,33 @@
 		<br>
 		<h3>Kriterier</h3>
 		<ul>
-			<?php foreach ($criterias as $criteria) { ?>
+<?php
+			foreach ($criterias as $criteria) {
+?>
 			<li>
-				<?php echo $criteria['title'] ?> x <?php echo $criteria['multiplier'] ?>
+<?php
+					echo $criteria['title'] ?> x <?php echo $criteria['multiplier'];
+
+					# are there missing items in the packlist
+					if ($criteria['missing_items']) {
+						?><br>
+						<span class="warning">Saknar följande i packlistan:</span>
+						<?php
+
+						foreach ($criteria['missing_items'] as $k => $v) {
+							if ($k) {
+								?>, <?php
+							}
+							?>
+							<a href="?view=index&id_items=<?php echo $v['id_items'] ?>"><?php echo $v['title'] ?></a>
+							<?php
+						}
+					}
+?>
 			</li>
-			<?php } ?>
+<?php
+			}
+?>
 		</ul>
 		<br>
 <?php

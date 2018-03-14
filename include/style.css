@@ -502,3 +502,8 @@ div.inuse_progressbars .inuse_progressbar1 {
 div.inuse_progressbars .inuse_progressbar0 {
 	background-color: #f0f0f0;
 }
+
+.warning {
+	font-weight: bold;
+	color: #ff5555;
+}

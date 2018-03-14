@@ -22,8 +22,9 @@
 # 2017-05-21 20:42:30 - adding packlist inuse
 # 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 # 2018-02-22 22:21:00 - adding packlist item relation comment
-# 2018-03-14 23:02:00 - adding criterias handling
-# 2018-03-14 23:44:00 - adding criterias handling continued
+# 2018-03-14 23:02:00 - adding criteria handling
+# 2018-03-14 23:44:00 - adding criteria handling continued
+# 2018-03-15 00:47:00 - adding criteria handling continued
 
 if (!isset($view)) die();
 
@@ -253,6 +254,32 @@ switch ($view) {
 			ORDER BY title');
 		break;
 
+	case 'criteria': # to display a category
+		if (!is_logged_in()) break;
+		$criterias = db_query($link, 'SELECT * FROM criterias WHERE id="'.dbres($link, $id_criterias).'"');
+
+		if (!count($criterias)) die('Criteria not found');
+		$criteria = reset($criterias);
+
+		$items = db_query($link, '
+			SELECT
+				i.id AS id_items,
+				rpi.id AS id_relations_criterias_items,
+				i.title,
+				0 AS criteria_item
+			FROM
+				items AS i,
+				relations_criterias_items AS rpi
+			WHERE
+				i.id = rpi.id_items
+				AND
+				rpi.id_criterias = "'.dbres($link, $id_criterias).'"
+			ORDER BY
+				title
+			');
+
+		break;
+
 	case 'file': # to get a file
 		if (!is_logged_in()) break;
 
@@ -400,6 +427,8 @@ switch ($view) {
 
 		# sort by from, because some trips may not know the to-date
 		$packlists = db_query($link, 'SELECT * FROM packlists ORDER BY `from` DESC');
+
+		$criterias = db_query($link, 'SELECT * FROM criterias');
 
 	#	die($sql);
 		break;
@@ -576,6 +605,7 @@ switch ($view) {
 			foreach ($criterias as $k => $v) {
 
 				$criterias[$k]['multiplier'] = 0;
+				$criterias[$k]['missing_items'] = array();
 
 				$daycounter = 0;
 				# walk the days in the packlist
@@ -590,6 +620,31 @@ switch ($view) {
 						# reset the day counter
 						$daycounter = 0;
 					}
+				}
+
+				# is this criteria used according to days
+				if ($criterias[$k]['multiplier']) {
+
+					# find items in the criteria that may not be in the packlist
+					$criterias[$k]['missing_items'] = db_query($link, '
+						SELECT
+							i.id AS id_items,
+							i.title
+						FROM
+							items AS i,
+							relations_criterias_items AS rci
+						WHERE
+							i.id = rci.id_items
+							AND rci.id_criterias="'.dbres($link, $criterias[$k]['id_criterias']).'"
+							AND i.id NOT IN (
+								SELECT
+									id_items
+								FROM
+									relations_packlists_items
+								WHERE
+									id_packlists="'.dbres($link, $id_packlists).'"
+							)
+						');
 				}
 			}
 		}

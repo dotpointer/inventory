@@ -20,7 +20,8 @@
 # 2017-05-21 20:42:04 - adding packlist inuse
 # 2018-02-19 20:08:00 - adding packlist from and to and copy packlist
 # 2018-02-22 22:21:00 - adding packlist item relation comment
-# 2018-03-14 23:02:00 - adding criterias handling
+# 2018-03-14 23:02:00 - adding criteria handling
+# 2018-03-15 00:47:00 - adding criteria handling continued
 
 if (!isset($action)) die();
 
@@ -642,6 +643,33 @@ switch ($action) {
 		}
 
 		break;
+
+	case 'insert_update_relations_criterias_items':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_items)) die('Missing id_items parameter.');
+		if (!is_numeric($id_criterias)) die('Missing id_criterias parameter.');
+
+		# check that relation is not there before
+		$sql = 'SELECT * FROM relations_criterias_items WHERE id_criterias="'.dbres($link, $id_criterias).'" AND id_items="'.dbres($link, $id_items).'"';
+		$r = db_query($link, $sql);
+		if (count($r)) {
+			echo json_encode(array(
+				'status' => true
+			));
+			die();
+		}
+
+		# delete criteria relations
+		$sql = 'INSERT INTO  relations_criterias_items (id_criterias, id_items) VALUES("'.dbres($link, $id_criterias).'","'.dbres($link, $id_items).'")';
+		$r = db_query($link, $sql);
+
+		echo json_encode(array(
+			'status' => true
+		));
+		die();
+
 	case 'insert_update_relations_packlists_items':
 
 		if (!is_logged_in()) break;
@@ -713,6 +741,18 @@ switch ($action) {
 		# delete packlist
 		$sql = 'DELETE FROM packlists WHERE id="'.dbres($link, $id_packlists).'"';
 		db_query($link, $sql);
+		break;
+
+	case 'delete_relation_criterias_items':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_relations_criterias_items)) die('Missing id_relations_criterias_items parameter.');
+
+		# delete criteria relations
+		$sql = 'DELETE FROM relations_criterias_items WHERE id="'.dbres($link, $id_relations_criterias_items).'"';
+		$r = db_query($link, $sql);
+
 		break;
 
 	case 'delete_relation_packlists_items':

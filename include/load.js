@@ -184,6 +184,24 @@
 					return false;
 				});
 
+				$('form.form_add_item_to_criteria').on('submit', function(e) {
+					$.postJSON("?action=insert_update_relations_criterias_items&format=json", {
+						id_items: $(this).find('input[name="id_items"]').val(),
+						id_criterias: $(this).find('select:first').val()
+					}, function(data) {
+						// when done, show result list, forward result data
+						$(this).find('.status').remove();
+
+						$(this).find('input[type="submit"]:first').after(
+							$('<span>')
+								.addClass('status')
+								.text('Tillagd')
+						);
+					}.bind(this));
+
+					e.preventDefault();
+					return false;
+				});
 
 				break;
 			case 'packlist':
