@@ -37,9 +37,14 @@
 	# 2018-03-14 23:02:00 - adding criteria handling
 	# 2018-03-14 23:44:00 - adding criteria handling continued
 	# 2018-03-15 00:47:00 - adding criteria handling continued
+	# 2018-03-15 02:30:00 - translations
 
 	# get required functionality
 	require_once('include/functions.php');
+
+	start_translations();
+
+	init_constants();
 
 	$add_to_new_packlists = isset($_REQUEST['add_to_new_packlists']) ? $_REQUEST['add_to_new_packlists'] : false;
 	$acquired = isset($_REQUEST['acquired']) ? $_REQUEST['acquired'] : false;
@@ -105,7 +110,7 @@
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-	<title>Inventarier<?php echo is_logged_in() && isset($item_amount[0], $item_amount[0]['amount']) ? ' - '.$item_amount[0]['amount'].' st' : ''?></title>
+	<title><?php echo t('Inventory') ?><?php echo is_logged_in() && isset($item_amount[0], $item_amount[0]['amount']) ? ' - '.$item_amount[0]['amount'].' st' : ''?></title>
 	<link rel="stylesheet" href="include/style.css" type="text/css" media="screen" />
 
 	<script type="text/javascript" src="include/jquery-2.1.1.min.js"></script>
@@ -125,12 +130,12 @@
 </head>
 <body>
 	<ul class="menu">
-		<li><a href="?view=index">Inventarier</a></li>
+		<li><a href="?view=index"><?php echo t('Inventory') ?></a></li>
 <?php 		if (is_logged_in()) { ?>
-		<li><a href="?view=categories">Kategorier</a></li>
-		<li><a href="?view=locations">Platser</a></li>
-		<li><a href="?view=edit_item">Ny</a></li>
-		<li><a href="?view=packlists">Packlistor</a></li>
+		<li><a href="?view=categories"><?php echo t('Categories') ?></a></li>
+		<li><a href="?view=locations"><?php echo t('Locations') ?></a></li>
+		<li><a href="?view=edit_item"><?php echo t('New') ?></a></li>
+		<li><a href="?view=packlists"><?php echo t('Packlists') ?></a></li>
 
 		<li>
 			<form action="?" method="post">
@@ -138,11 +143,10 @@
 					<input type="hidden" name="view" value="index">
 					<input type="text" class="text" name="find" value="<?php echo $find;?>" placeholder="Sök">
 					<select name="id_categories_find">
-						<option>-- Kategori</option>
+						<option>-- <?php echo t('Category') ?></option>
 <?php 		# walk categories one by one
 			foreach ($categories_find as $k => $v) {
 				$selected = (int)$id_categories_find === (int)$v['id'] ? ' selected="selected"' : '';
-
 ?>
 						<option value="<?php echo $v['id'] ?>"<?php echo $selected?>><?php echo $v['title'] ?></option>
 <?php
@@ -151,7 +155,7 @@
 					</select>
 
 <select name="status_find">
-						<option>-- Status</option>
+						<option>-- <?php echo t('Status') ?></option>
 <?php 		# walk statuses one by one
 			foreach ($statuses as $k => $v) {
 				$selected = (int)$status_find === (int)$k ? ' selected="selected"' : '';
@@ -193,8 +197,8 @@
 	<form action="?action=insert_update_category" method="post">
 		<fieldset>
 			<input type="hidden" name="id_categories" value="<?php echo isset($category['id']) ? $category['id'] : ''?>">
-			<label for="title">Titel</label><input class="text" type="text" name="title" value="<?php echo isset($category['title']) ? $category['title'] : ''?>"><br>
-			<input class="submit" type="submit" name="submit" value="Spara">
+			<label for="title"><?php echo t('Title') ?></label><input class="text" type="text" name="title" value="<?php echo isset($category['title']) ? $category['title'] : ''?>"><br>
+			<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
 		</fieldset>
 	</form>
 <?php
@@ -206,7 +210,7 @@
 				break;
 			}
 ?>
-	<h2>Redigera kriterium<?php
+	<h2><?php echo t('Edit criteria') ?><?php
 		if (isset($criteria['id'])) {
 			echo ' #'.$criteria['id'];
 		}
@@ -217,20 +221,20 @@
 			<input type="hidden" name="id_criterias" value="<?php echo isset($criteria['id']) ? $criteria['id'] : ''?>">
 
 			<div class="row">
-				<label for="title">Titel</label>
+				<label for="title"><?php echo t('Title') ?></label>
 				<input class="text" type="text" name="title" value="<?php echo isset($criteria['title']) ? $criteria['title'] : ''?>"><br>
 			</div>
 
 			<div class="row">
-				<label for="title">Dagsintervall</label>
+				<label for="title"><?php echo t('Day interval') ?></label>
 				<input class="text" type="number" name="interval_days" value="<?php echo isset($criteria['interval_days']) ? $criteria['interval_days'] : ''?>"><br>
 			</div>
 
 			<div class="row">
-				<label for="title">Lägg till nya packlistor</label>
+				<label for="title"><?php echo t('Add to new packlists') ?></label>
 				<select name="add_to_new_packlists">
-					<option value="0">Nej</option>
-					<option value="1"<?php echo isset($criteria['add_to_new_packlists']) && (int)$criteria['add_to_new_packlists'] ? ' selected="selected' : ''?>>Ja</option>
+					<option value="0"><?php echo t('No') ?></option>
+					<option value="1"<?php echo isset($criteria['add_to_new_packlists']) && (int)$criteria['add_to_new_packlists'] ? ' selected="selected' : ''?>><?php echo t('Yes') ?></option>
 				</select>
 				<br>
 			</div>
@@ -249,7 +253,7 @@
 				break;
 			}
 ?>
-	<h2>Redigera inventarie<?php
+	<h2><?php echo t('Edit inventory') ?><?php
 
 		if (isset($item['id'])) {
 			echo ' #'.$item['id'];
@@ -261,67 +265,67 @@
 			<input type="hidden" name="MAX_FILE_SIZE" value="10737418240" />
 			<input type="hidden" name="id_items" value="<?php echo isset($item['id']) ? $item['id'] : ''?>">
 			<div class="row">
-				<label for="title">Titel</label>
+				<label for="title"><?php echo t('Title') ?></label>
 				<input class="text" type="text" name="title" value="<?php echo isset($item['title']) ? $item['title'] : ''?>">
 			</div>
 			<div class="row">
-				<label for="description">Beskrivning</label>
+				<label for="description"><?php echo t('Description') ?></label>
 				<textarea name="description"><?php echo isset($item['description']) ? $item['description'] : ''?></textarea>
 				</div>
 			<div class="row">
-				<label for="batteries_aa">AA-batterier:</label>
+				<label for="batteries_aa"><?php echo t('AA batteries') ?>:</label>
 				<input class="text" type="text" name="batteries_aa" value="<?php echo isset($item['batteries_aa']) ? $item['batteries_aa'] : ''?>">
 			</div>
 			<div class="row">
-				<label for="batteries_aaa">AAA-batterier:</label>
+				<label for="batteries_aaa"><?php echo t('AAA batteries') ?>:</label>
 				<input class="text" type="text" name="batteries_aaa" value="<?php echo isset($item['batteries_aaa']) ? $item['batteries_aaa'] : ''?>"></div>
 			<div class="row">
-				<label for="batteries_c">C-batterier:</label>
+				<label for="batteries_c"><?php echo t('C batteries') ?>:</label>
 				<input class="text" type="text" name="batteries_c" value="<?php echo isset($item['batteries_c']) ? $item['batteries_c'] : ''?>">
 			</div>
 			<div class="row">
-				<label for="batteries_d">D-batterier:</label>
+				<label for="batteries_d"><?php echo t('D batteries') ?>:</label>
 				<input class="text" type="text" name="batteries_d" value="<?php echo isset($item['batteries_d']) ? $item['batteries_d'] : ''?>">
 			</div>
 			<div class="row">
-				<label for="batteries_3r12">3R12-batterier:</label>
+				<label for="batteries_3r12"><?php echo t('3R12 batteries') ?>:</label>
 				<input class="text" type="text" name="batteries_3r12" value="<?php echo isset($item['batteries_3r12']) ? $item['batteries_3r12'] : ''?>">
 			</div>
 			<div class="row">
-				<label for="batteries_e">(9V) E-batterier:</label>
+				<label for="batteries_e">(9V) <?php echo t('E batteries') ?>:</label>
 				<input class="text" type="text" name="batteries_e" value="<?php echo isset($item['batteries_e']) ? $item['batteries_e'] : ''?>">
 			</div>
 			<div class="row">
-				<label for="materials">Material:</label>
+				<label for="materials"><?php echo t('Material') ?>:</label>
 				<input class="text" type="text" name="materials" value="<?php echo isset($item['materials']) ? $item['materials'] : ''?>">
-				<button id="button_material_100_cotton">100% bomull</button>
+				<button id="button_material_100_cotton">100% <?php echo t('cotton') ?></button>
 			</div>
 			<div class="row">
-				<label for="watt">Watt:</label>
+				<label for="watt"><?php echo t('Watts') ?>:</label>
 				<input class="text" type="text" name="watt" value="<?php echo isset($item['watt']) ? $item['watt'] : ''?>">
 			</div>
 			<div class="row">
-				<label for="watt_max">Watt max:</label>
+				<label for="watt_max"><?php echo t('Watts max') ?>:</label>
 				<input class="text" type="text" name="watt_max" value="<?php echo isset($item['watt_max']) ? $item['watt_max'] : ''?>">
 			</div>
 			<div class="row">
-				<label for="weight">Vikt:</label>
+				<label for="weight"><?php echo t('Weight') ?>:</label>
 				<input class="text" type="text" name="weight" value="<?php echo isset($item['weight']) ? $item['weight'] : ''?>">g
 			</div>
 			<div class="row">
-				<label for="source">Fått från:</label>
+				<label for="source"><?php echo t('Got from') ?>:</label>
 				<input class="text" type="text" name="source" value="<?php echo isset($item['source']) ? $item['source'] : ''?>">
 			</div>
 			<div class="row">
-				<label for="location">Placering:</label>
+				<label for="location"><?php echo t('Location') ?>:</label>
 				<input class="text" type="text" name="location" value="<?php echo isset($item['location']) ? $item['location'] : ($location !== false ? $location : 'Uttervik')?>">
 			</div>
 			<div class="row">
-				<label for="price">Inköpspris:</label>
+				<label for="price"><?php echo t('Buying price') ?>:</label>
 				<input class="text" type="text" name="price" value="<?php echo isset($item['price']) ? $item['price'] : ''?>">
 			</div>
 			<div class="row">
-				<label for="file">JPEG-bild</label>
+				<label for="file"><?php echo t('JPEG image') ?></label>
 				<input class="file" type="file" name="file">
 <?php		if (isset($item['id_files']) && file_exists(FILE_DIR.$item['id_files'].'.jpg')) { ?>
 				<a href="?view=file&amp;id_files=<?php echo $item['id_files']?>"><img src="?view=file&amp;type=thumbnail&amp;id_files=<?php echo $item['id_files']?>"></a><br><br>
@@ -329,10 +333,10 @@
 <?php 		} ?>
 			</div>
 			<div class="row">
-				<label for="id_categories">Kategori</label>
+				<label for="id_categories"><?php echo t('Category') ?></label>
 				<select name="id_categories">
-					<option>-- Kategori</option>
-					<option value="-1">-- Ny kategori</option>
+					<option>-- <?php echo t('Category') ?></option>
+					<option value="-1">-- <?php echo t('New category') ?></option>
 <?php
 				# walk the categories
 				foreach ($categories as $k => $v) {
@@ -350,17 +354,17 @@
 				<input class="text" id="category" name="category" placeholder="Ny kategori">
 			</div>
 			<div class="row">
-				<label for="acquired">Datum förvärvad</label>
+				<label for="acquired"><?php echo t('Date acquired') ?></label>
 				<input class="text" type="text" name="acquired" value="<?php echo isset($item['acquired']) ? $item['acquired'] : ''?>">
-				<button id="button_aquired_date">Sätt datum</button>
+				<button id="button_aquired_date"><?php echo t('Set date') ?></button>
 			</div>
 			<div class="row">
-				<label for="disposed">Datum avyttrad</label>
+				<label for="disposed"><?php echo t('Date disposed') ?></label>
 				<input class="text" type="text" name="disposed" value="<?php echo isset($item['disposed']) ? $item['disposed'] : ''?>">
-				<button id="button_disposed_date">Sätt datum</button>
+				<button id="button_disposed_date"><?php echo t('Set date') ?></button>
 			</div>
 			<div class="row">
-				<label for="status">Status:</label>
+				<label for="status"><?php echo t('Status') ?>:</label>
 				<select name="status">
 <?php
 				# walk statuses
@@ -373,15 +377,15 @@
 				}
 ?>
 				</select>
-				<button id="button_status_sale">Säljes</button>
-				<button id="button_status_sold">Såld</button>
+				<button id="button_status_sale"><?php echo t('To be sold') ?></button>
+				<button id="button_status_sold"><?php echo t('Sold') ?></button>
 		</div>
 
 
 			<div class="row">
-				<label for="inuse">Används:</label>
+				<label for="inuse"><?php echo t('In use') ?>:</label>
 				<select name="inuse">
-				<option value="<?php echo $k;?>"<?php echo $selected?>>-- Används</option>
+				<option value="<?php echo $k;?>"<?php echo $selected?>>-- <?php echo t('In use') ?></option>
 	<?php
 					# walk inuse
 					foreach ($usage as $k => $v) {
@@ -396,13 +400,13 @@
 				</select>
 			</div>
 			<div class="row">
-				<label for="view">Nästa sida:</label>
+				<label for="view"><?php echo t('Next page') ?>:</label>
 				<select name="view">
-					<option value="index"<?php echo $view==='edit_item' ? ' selected="selected"' : ''?>>Visa redigerad inventarie</option>
-					<option value="edit_item"<?php echo $view==='edit_item' ? ' selected="selected"' : ''?>>Ny inventarie</option>
+					<option value="index"<?php echo $view==='edit_item' ? ' selected="selected"' : ''?>><?php echo t('Show edited inventory') ?></option>
+					<option value="edit_item"<?php echo $view==='edit_item' ? ' selected="selected"' : ''?>><?php echo t('New inventory') ?></option>
 				</select>
 			</div>
-			<input class="submit" type="submit" name="submit" value="Spara">
+			<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
 		</fieldset>
 	</form>
 <?php
@@ -426,13 +430,13 @@
 			<input type="hidden" name="MAX_FILE_SIZE" value="10737418240" />
 
 			<div class="row">
-				<label for="title">Titel</label><input class="text" type="text" name="title" value="<?php echo isset($location['title']) ? $location['title'] : ''?>"><br>
+				<label for="title"><?php echo t('Title') ?></label><input class="text" type="text" name="title" value="<?php echo isset($location['title']) ? $location['title'] : ''?>"><br>
 			</div>
 			<div class="row">
-				<label for="contents">Innehåll</label><input class="text" type="text" name="contents" value="<?php echo isset($location['contents']) ? $location['contents'] : ''?>"><br>
+				<label for="contents"><?php echo t('Contents') ?></label><input class="text" type="text" name="contents" value="<?php echo isset($location['contents']) ? $location['contents'] : ''?>"><br>
 			</div>
 			<div class="row">
-				<label for="file">JPEG-bild</label>
+				<label for="file"><?php echo t('JPEG image') ?></label>
 				<input class="file" type="file" name="file">
 <?php		if (isset($item['id_files']) && file_exists(FILE_DIR.$item['id_files'].'.jpg')) { ?>
 				<a href="?view=file&amp;id_files=<?php echo $item['id_files']?>"><img src="?view=file&amp;type=thumbnail&amp;id_files=<?php echo $item['id_files']?>"></a><br><br>
@@ -440,7 +444,7 @@
 <?php 		} ?>
 			</div>
 			<div class="row">
-				<input class="submit" type="submit" name="submit" value="Spara">
+				<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
 			</div>
 		</fieldset>
 	</form>
@@ -464,24 +468,24 @@
 			<input type="hidden" name="id_packlists" value="<?php echo isset($packlist['id']) ? $packlist['id'] : ''?>">
 
 			<div class="row">
-				<label for="title">Titel</label>
+				<label for="title"><?php echo t('Title') ?></label>
 				<input class="text" type="text" name="title" value="<?php echo isset($packlist['title']) ? $packlist['title'] : ''?>"><br>
 			</div>
 			<div class="row">
-				<label for="title">Datum från</label>
+				<label for="title"><?php echo t('Date from') ?></label>
 				<input class="text" type="date" name="from" value="<?php echo isset($packlist['from']) ? substr($packlist['from'], 0, strpos($packlist['from'], ' ')) : ''?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" required>
 				<br>
 			</div>
 			<div class="row">
-				<label for="title">Datum till</label>
+				<label for="title"><?php echo t('Date to') ?></label>
 				<input class="text" type="date" name="to" value="<?php echo isset($packlist['to']) ? substr($packlist['to'], 0, strpos($packlist['to'], ' ')) : ''?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" required>
 				<br>
 			</div>
 
 			<div class="row">
-				<label for="id_packlists_from">Kopiera från packlista</label>
+				<label for="id_packlists_from"><?php echo t('Copy from packlist') ?></label>
 				<select name="id_packlists_from">
-					<option value="0">-- Kopiera inte</option>
+					<option value="0">-- <?php echo t('Do not copy') ?></option>
 					<?php foreach($packlists_copy as $vx) { ?>
 					<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
 					<?php } ?>
@@ -490,9 +494,9 @@
 			</div>
 
 			<div class="row">
-				<label for="id_packlists_from">Kriterier</label>
+				<label for="id_packlists_from"><?php echo t('Criterias') ?></label>
 				<div class="selectbox_left">
-					<div class="subheader">Tillgängliga:</div>
+					<div class="subheader"><?php echo t('Available') ?>:</div>
 					<select multiple id="select_criterias_available">
 						<?php foreach ($criterias_available as $ca) { ?>
 						<option value="<?php echo $ca['id'] ?>"><?php echo $ca['title'] ?></option>
@@ -506,7 +510,7 @@
 					<button id="button_criterias_add">&gt;&gt;</button>
 				</div>
 				<div class="selectbox_right">
-					<div class="subheader">Valda:</div>
+					<div class="subheader"><?php echo t('Selected') ?>:</div>
 					<select multiple id="select_criterias_selected">
 						<?php foreach ($criterias_selected as $cs) { ?>
 						<option value="<?php echo $cs['id'] ?>"><?php echo $cs['title'] ?></option>
@@ -522,7 +526,7 @@
 			</div>
 
 			<div class="row">
-				<input class="submit" type="submit" name="submit" value="Spara">
+				<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
 			</div>
 		</fieldset>
 	</form>
@@ -536,7 +540,7 @@
 				break;
 			}
 ?>
-	<h2>Redigera packlisteobjekt-relation<?php
+	<h2><?php echo t('Edit packlist object relation') ?><?php
 ?></h2>
 	<form action="?view=packlist&id_packlists=<?php echo isset($relation['id_packlists']) ? $relation['id_packlists'] : ''?>" method="post">
 		<fieldset>
@@ -544,16 +548,16 @@
 			<input type="hidden" name="id_relations_packlists_items" value="<?php echo isset($relation['id_relation_packlists_items']) ? $relation['id_relation_packlists_items'] : ''?>">
 
 			<div class="row">
-				<label for="title">Objekt</label>
+				<label for="title"><?php echo t('Object') ?></label>
 				<span class="value"><?php echo $relation['title']; ?></span><br>
 			</div>
 			<div class="row">
-				<label for="title">Kommentar</label>
+				<label for="title"><?php echo t('Comment') ?></label>
 				<input class="text" type="text" name="comment" value="<?php echo $relation['comment'] ?>">
 				<br>
 			</div>
 			<div class="row">
-				<input class="submit" type="submit" name="submit" value="Spara">
+				<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
 			</div>
 		</fieldset>
 	</form>
@@ -566,17 +570,17 @@
 				break;
 			}
 ?>
-		<h2>Inventarieförteckning<?php
+		<h2><?php echo t('Inventory list') ?><?php
 			if (isset($category) && is_array($category)) {
-				echo ' för kategori '.$category['title'];
+				echo ' '.t('for category').' '.$category['title'];
 			}
 
 			if (isset($location) && is_array($location)) {
-				echo ' för platsen '.$location['title'];
+				echo ' '.t('for location').' '.$location['title'];
 			}
 
 		?></h2>
-		<p>Sökningen resulterade i <?php echo $items_amount; ?> träffar.</p>
+		<p><?php echo t('The search resulted in') ?> <?php echo $items_amount; ?> <?php echo t('hits') ?>.</p>
 
 		<p class="browse">
 			<a href="?view=index&amp;find=<?php echo $find?>&amp;id_locations=<?php echo $id_locations?>&amp;id_categories_find=<?php echo $id_categories_find?>&amp;status_find=<?php echo $status_find?>&amp;start=<?php echo ($start-$limit) > 0 ? $start-$limit : 0 ?>&amp;limit=<?php echo $limit?>">&lt;&lt; <?php echo $start ?></a>
@@ -588,9 +592,9 @@
 		<table>
 			<thead>
 				<tr>
-					<th class="image">Bild</th>
-					<th>Beskrivning</th>
-					<th>Status</th>
+					<th class="image"><?php echo t('Image') ?></th>
+					<th><?php echo t('Description') ?></th>
+					<th><?php echo t('Status') ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -608,11 +612,11 @@
 					</td>
 					<td class="description">
 						<h4><a href="?view=index&amp;id_items=<?php echo $v['id']?>">#<?php echo $v['id']?> - <?php echo $v['title']?></a></h4>
-						<p><?php echo strlen(trim($v['description'])) ? nl2br($v['description']) : 'Ingen beskrivning.'; ?></p>
+						<p><?php echo strlen(trim($v['description'])) ? nl2br($v['description']) : t('No description.'); ?></p>
 						<p class="subdata">
-							Fått från: <?php echo $v['source']?>
+							<?php echo t('Got from') ?>: <?php echo $v['source']?>
 							<br>
-							Placering: <?php foreach ($v['locations'] as $loc_key => $loc) {
+							<?php echo t('Location') ?>: <?php foreach ($v['locations'] as $loc_key => $loc) {
 
 							if ($loc_key) {
 								echo ' + ';
@@ -623,52 +627,52 @@
 						?>
 							<?php if ($v['watt']) { ?>
 							<br>
-							Watt: <?php echo $v['watt']?>-<?php echo $v['watt_max']?>
+							<?php echo t('Watts') ?>: <?php echo $v['watt']?>-<?php echo $v['watt_max']?>
 							<?php } ?>
 
 							<?php if ($v['weight']) { ?>
 							<br>
-							Vikt: <?php echo $v['weight']?>g
+							<?php echo t('Weight') ?>: <?php echo $v['weight']?>g
 							<?php } ?>
 
 							<?php if ($v['batteries_aa']) { ?>
 							<br>
-							AA-batterier: <?php echo $v['batteries_aa']?> st
+							<?php echo t('AA batteries') ?>: <?php echo $v['batteries_aa']?> st
 							<?php } ?>
 
 							<?php if ($v['batteries_aaa']) { ?>
 							<br>
-							AAA-batterier: <?php echo $v['batteries_aaa']?> st
+							<?php echo t('AAA batteries') ?>: <?php echo $v['batteries_aaa']?> st
 							<?php } ?>
 
 							<?php if ($v['batteries_c']) { ?>
 							<br>
-							C-batterier: <?php echo $v['batteries_c']?> st
+							<?php echo t('C batteries') ?>: <?php echo $v['batteries_c']?> st
 							<?php } ?>
 
 							<?php if ($v['batteries_d']) { ?>
 							<br>
-							D-batterier: <?php echo $v['batteries_d']?> st
+							<?php echo t('D batteries') ?>: <?php echo $v['batteries_d']?> st
 							<?php } ?>
 
 							<?php if ($v['batteries_e']) { ?>
 							<br>
-							(9V) E-batterier: <?php echo $v['batteries_e']?> st
+							(9V) <?php echo t('E batteries') ?>: <?php echo $v['batteries_e']?> st
 							<?php } ?>
 
 							<?php if ($v['batteries_3r12']) { ?>
 							<br>
-							3R12-batterier: <?php echo $v['batteries_3r12']?> st
+							<?php echo t('3R12 batteries') ?>: <?php echo $v['batteries_3r12']?> st
 							<?php } ?>
 
 							<?php if ($v['materials']) { ?>
 							<br>
-							Material: <?php echo $v['materials']?>
+							<?php echo t('Materials') ?>: <?php echo $v['materials']?>
 							<?php } ?>
 
 							<form class="form_add_item_to_packlist">
 								<div>
-									<label>Lägg till packlista</label>
+									<label><?php echo t('Add to packlist') ?></label>
 									<input type="hidden" value="<?php echo $v['id'] ?>" name="id_items" >
 									<select>
 										<?php foreach($packlists as $vx) {
@@ -679,20 +683,20 @@
 										<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
 										<?php } ?>
 									</select>
-									<input type="submit" value="OK" >
+									<input type="submit" value="<?php echo t('Save') ?>" >
 								</div>
 							</form>
 
 							<form class="form_add_item_to_criteria">
 								<div>
-									<label>Lägg till kriterium</label>
+									<label><?php echo t('Add to criteria') ?></label>
 									<input type="hidden" value="<?php echo $v['id'] ?>" name="id_items" >
 									<select>
 										<?php foreach($criterias as $vx) { ?>
 										<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
 										<?php } ?>
 									</select>
-									<input type="submit" value="OK" >
+									<input type="submit" value="<?php echo t('Save') ?>" >
 								</div>
 							</form>
 						</p>
@@ -703,7 +707,7 @@
 						<div class="inuse inuse<?php echo $v['inuse']; ?>"><?php echo $usage[$v['inuse']]; ?></div>
 						<br><br>
 
-						<a href="?view=edit_item&amp;id_items=<?php echo $v['id']?>">Redigera</a>
+						<a href="?view=edit_item&amp;id_items=<?php echo $v['id']?>"><?php echo t('Edit') ?></a>
 					</td>
 				</tr>
 <?php
@@ -735,10 +739,10 @@
 			<thead>
 				<tr>
 					<th class="id">#</th>
-					<th>Kategori</th>
-					<th class="counter">Objekt</th>
-					<th>Användning</th>
-					<th class="manage">Hantera</th>
+					<th><?php echo t('Category') ?></th>
+					<th class="counter"><?php echo t('Object') ?></th>
+					<th><?php echo t('Usage') ?></th>
+					<th class="manage"><?php echo t('Manage') ?></th>
 				</tr>
 			</thead>
 <?php 		# walk categories one by one
@@ -796,18 +800,14 @@
 					<td class="progressbar">
 						<div class="inuse_progressbars">
 <?php
-
-
 						foreach ($amounts as $k => $v) {
 							?><div title="<?php echo $usage[$k]?>" class="inuse_progressbar<?php echo $k?>" style="width: <?php echo ($v / $total) * 100; ?>%"><?php echo $v ?> (<?php echo round(($v / $total) * 100,2); ?>%)</div><?php
 						}
-
-
 ?>
 					</td>
 
 					<td class="manage">
-						<a href="?view=edit_category&amp;id_categories=<?php echo $v['id'] ?>">Redigera</a>
+						<a href="?view=edit_category&amp;id_categories=<?php echo $v['id'] ?>"><?php echo t('Edit') ?></a>
 					</td>
 
 				</tr>
@@ -815,22 +815,19 @@
 			} # eof-foreach-categories
 ?>
 			</tbody>
-
-<tfoot>
+			<tfoot>
 				<tr>
-					<td>Totalt</td>
+					<td><?php echo t('Totally') ?></td>
 					<td></td>
 					<td><?php echo $x; ?> st</td>
 					<td class="progressbar">
 						<div class="inuse_progressbars">
-
 <?php
 						foreach ($total_amounts as $k => $v) {
 							?><div title="<?php echo $usage[$k]?>" class="inuse_progressbar<?php echo $k?>" style="width: <?php echo ($v / $total_total_amounts) * 100; ?>%"><?php echo $v ?> (<?php echo round(($v / $total_total_amounts) * 100,2); ?>%)</div><?php
 						}
 ?>
 						</div>
-
 					</td>
 					<td></td>
 				</tr>
@@ -844,31 +841,31 @@
 				break;
 			}
 ?>
-		<h2>Kriterium <?php echo $criteria['title']; ?> <a href="?view=edit_criteria&amp;id_criterias=<?php echo $criteria['id']; ?>">Redigera</a></div></h2>
+		<h2><?php echo t('Criteria') ?> <?php echo $criteria['title']; ?> <a href="?view=edit_criteria&amp;id_criterias=<?php echo $criteria['id']; ?>"><?php echo t('Edit') ?></a></div></h2>
 
-		<h3>Summering</h3>
+		<h3><?php echo t('Summary') ?></h3>
 		<ul>
 			<li>
-				Dagsintervall: <?php echo $criteria['interval_days'] ?>
+				<?php echo t('Day interval') ?>: <?php echo $criteria['interval_days'] ?>
 			</li>
 			<li>
-				Lägg till nya packlistor: <?php echo (int)$criteria['add_to_new_packlists'] ? 'Ja' : 'Nej' ?>
+				<?php echo t('Add to new packlists') ?>: <?php echo (int)$criteria['add_to_new_packlists'] ? 'Ja' : 'Nej' ?>
 			</li>
 		</ul>
 		<br>
 
-		<h3>Objekt som krävs av kriteriet</h3>
+		<h3><?php echo t('Objects required by the criteria') ?></h3>
 		<table>
 			<thead>
 				<tr>
-					<th>Objekt</th>
+					<th><?php echo t('Object') ?>a</th>
 					<th></th>
 				</tr>
 			</thead>
 			<tfoot>
 				<tr>
-					<td>Totalt</td>
-					<td><?php echo count($items); ?> st</td>
+					<td><?php echo t('Totally') ?></td>
+					<td><?php echo count($items); ?> <?php echo t('pcs') ?></td>
 				</tr>
 			</tfoot>
 			<tbody>
@@ -880,7 +877,7 @@
 						<a href="?view=index&id_items=<?php echo $v['id_items'] ?>"><?php echo $v['title'] ?></a>
 					</td>
 					<td class="manage">
-						<a href="?action=delete_relation_criterias_items&amp;id_relations_criterias_items=<?php echo $v['id_relations_criterias_items'] ?>&view=criteria&id_criterias=<?php echo $criteria['id'] ?>" class="confirm">Radera</a>
+						<a href="?action=delete_relation_criterias_items&amp;id_relations_criterias_items=<?php echo $v['id_relations_criterias_items'] ?>&view=criteria&id_criterias=<?php echo $criteria['id'] ?>" class="confirm"><?php echo t('Remove') ?></a>
 					</td>
 				</tr>
 <?php
@@ -900,12 +897,12 @@
 		<table>
 			<thead>
 				<tr>
-					<th class="image">Bild</th>
-					<th>Plats</th>
-					<th>Innehåll</th>
-					<th class="counter">Objekt</th>
-					<th>Användning</th>
-					<th class="manage">Hantera</th>
+					<th class="image"><?php echo t('Image') ?></th>
+					<th><?php echo t('Location') ?></th>
+					<th><?php echo t('Contents') ?></th>
+					<th class="counter"><?php echo t('Objects') ?></th>
+					<th><?php echo t('Usage') ?></th>
+					<th class="manage"><?php echo t('Manage') ?></th>
 				</tr>
 			</thead>
 <?php 		# walk locations one by one
@@ -916,10 +913,10 @@
 ?>
 			<tfoot>
 				<tr>
-					<td>Totalt</td>
+					<td><?php echo t('Totally') ?></td>
 					<td></td>
 					<td></td>
-					<td><?php echo $x; ?> st</td>
+					<td><?php echo $x; ?> <?php echo t('pcs') ?></td>
 					<td>
 					<td></td>
 				</tr>
@@ -927,7 +924,6 @@
 			<tbody>
 <?php 		# walk locations one by one
 			foreach ($locations as $k => $v) {
-
 
 				$i=0;
 				$amounts = array();
@@ -938,11 +934,11 @@
 					if ((int)$v['inuse'.$i.'_amount'] <=0) {
 						$i++;
 						continue;
-						}
+					}
 					$amounts[$i] = (int)$v['inuse'.$i.'_amount'];
 
 					$total += $amounts[$i];
-												++$i;
+					++$i;
 
 				}
 
@@ -986,10 +982,10 @@
 
 					<td class="manage">
 					<?php if ((int)$v['item_amount'] < 1) { ?>
-						<a href="?action=delete_location&amp;id_locations=<?php echo $v['id'] ?>&view=locations">Radera</a>
+						<a href="?action=delete_location&amp;id_locations=<?php echo $v['id'] ?>&view=locations"><?php echo t('Remove') ?></a>
 					<?php } ?>
 
-						<a href="?view=edit_location&amp;id_locations=<?php echo $v['id'] ?>">Redigera</a>
+						<a href="?view=edit_location&amp;id_locations=<?php echo $v['id'] ?>"><?php echo t('Edit') ?></a>
 
 					</td>
 
@@ -1008,13 +1004,13 @@
 				break;
 			}
 ?>
-		<h2>Packlista <?php echo $packlist['title']; ?> <a href="?view=edit_packlist&amp;id_packlists=<?php echo $packlist['id']; ?>">Redigera</a></div></h2>
+		<h2><?php echo t('Packlist') ?> <?php echo $packlist['title']; ?> <a href="?view=edit_packlist&amp;id_packlists=<?php echo $packlist['id']; ?>"><?php echo t('Edit') ?></a></div></h2>
 
 <?php
 		if ($criterias) {
 ?>
 		<br>
-		<h3>Kriterier</h3>
+		<h3><?php echo t('Criterias') ?></h3>
 		<ul>
 <?php
 			foreach ($criterias as $criteria) {
@@ -1026,7 +1022,7 @@
 					# are there missing items in the packlist
 					if ($criteria['missing_items']) {
 						?><br>
-						<span class="warning">Saknar följande i packlistan:</span>
+						<span class="warning"><?php echo t('The following is missing in the packlist') ?>:</span>
 						<?php
 
 						foreach ($criteria['missing_items'] as $k => $v) {
@@ -1051,10 +1047,10 @@
 		<table>
 			<thead>
 				<tr>
-					<th>Packad</th>
-					<th>Objekt</th>
-					<th>Användning</th>
-					<th>Vikt</th>
+					<th><?php echo t('Packed') ?></th>
+					<th><?php echo t('Object') ?></th>
+					<th><?php echo t('Usage') ?></th>
+					<th><?php echo t('Weight') ?></th>
 					<th></th>
 				</tr>
 			</thead>
@@ -1068,10 +1064,10 @@
 			<tfoot>
 				<tr>
 					<td></td>
-					<td>Totalt</td>
+					<td><?php echo t('Totally') ?></td>
 					<td></td>
 					<td><?php echo $x; ?>g</td>
-					<td><?php echo count($items); ?> st</td>
+					<td><?php echo count($items); ?> <?php echo t('pcs') ?></td>
 				</tr>
 			</tfoot>
 			<tbody>
@@ -1123,7 +1119,7 @@
 ?>
 							data-id-packlist-items="<?php echo (int)$v['id_packlist_items']?>"
 <?php			} ?>>
-							<option value="<?php echo $k;?>"<?php echo $selected?>>-- Används</option>
+							<option value="<?php echo $k;?>"<?php echo $selected?>>-- <?php echo t('Usage') ?></option>
 <?php
 					# walk inuse
 					foreach ($usage as $k2 => $v2) {
@@ -1144,14 +1140,14 @@
 						# is this a regular item
 				if (!(int)$v['packlist_item']) {
 ?>
-						<a href="?view=edit_relation_packlists_items&amp;id_relations_packlists_items=<?php echo $v['id_relations_packlists_items'] ?>">Redigera</a>
-						<a href="?action=delete_relation_packlists_items&amp;id_relations_packlists_items=<?php echo $v['id_relations_packlists_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>" class="confirm">Radera</a>
+						<a href="?view=edit_relation_packlists_items&amp;id_relations_packlists_items=<?php echo $v['id_relations_packlists_items'] ?>"><?php echo t('Edit') ?></a>
+						<a href="?action=delete_relation_packlists_items&amp;id_relations_packlists_items=<?php echo $v['id_relations_packlists_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>" class="confirm"><?php echo t('Remove') ?></a>
 <?php
 				# or is this a packlist item
 				} else {
 ?>
-						<a href="?" class="edit_packlist_item" data-id-packlist-items="<?php echo $v['id_packlist_items'] ?>" data-weight="<?php echo $v['weight'] ?>" data-title="<?php echo $v['title'] ?>">Redigera objekt</a>
-						<a href="?action=delete_packlist_item&amp;id_packlist_items=<?php echo $v['id_packlist_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>" class="confirm">Radera</a>
+						<a href="?" class="edit_packlist_item" data-id-packlist-items="<?php echo $v['id_packlist_items'] ?>" data-weight="<?php echo $v['weight'] ?>" data-title="<?php echo $v['title'] ?>"><?php echo t('Edit') ?></a>
+						<a href="?action=delete_packlist_item&amp;id_packlist_items=<?php echo $v['id_packlist_items'] ?>&view=packlist&id_packlists=<?php echo $packlist['id'] ?>" class="confirm"><?php echo t('Remove') ?></a>
 <?php
 				}
 ?>
@@ -1163,7 +1159,7 @@
 			</tbody>
 		</table>
 
-		<h2>Lägg till/redigera objekt utanför inventariedatabasen <a href="#" id="a_form_packlist_item_reset">Rensa</a></h2>
+		<h2><?php echo t('Add/edit object outside of the inventory database') ?> <a href="#" id="a_form_packlist_item_reset"><?php echo t('Clear') ?></a></h2>
 		<form action="?action=insert_update_packlist_item" method="post" id="form_edit_packlist_item">
 			<fieldset>
 				<input type="hidden" name="view" value="packlist">
@@ -1171,12 +1167,12 @@
 				<input type="hidden" name="id_packlist_items" value="0">
 
 				<div class="row">
-					<label>#</label><span class="value" id="span_id_packlist_items">Nytt objekt</span><br>
-					<label for="title">Titel</label><input class="text" type="text" name="title" value=""><br>
-					<label for="weight">Vikt</label><input class="text" type="text" name="weight" value=""><br>
+					<label>#</label><span class="value" id="span_id_packlist_items"><?php echo t('New object') ?></span><br>
+					<label for="title"><?php echo t('Title') ?></label><input class="text" type="text" name="title" value=""><br>
+					<label for="weight"><?php echo t('Weight') ?></label><input class="text" type="text" name="weight" value=""><br>
 				</div>
 				<div class="row">
-					<input class="submit" type="submit" name="submit" value="Spara">
+					<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
 				</div>
 			</fieldset>
 		</form>
@@ -1190,20 +1186,20 @@
 			}
 
 			$packlisttype = array(
-				0 => 'Kommande',
-				1 => 'Pågående',
-				2 => 'Avslutade'
+				0 => t('Coming'),
+				1 => t('Current'),
+				2 => t('Ended')
 			);
 
 			for ($f = 0; $f < 3; $f +=1 ) {
 
 ?>
 		<h2>
-			Packlistor - <?php echo $packlisttype[$f];
+			<?php echo t('Packlists') ?> - <?php echo $packlisttype[$f];
 
 				if ($f === 0) { ?>
-			<div class="action"><a href="?view=edit_packlist">Ny</a></div>
-			<div class="action"><a href="?view=criterias">Kriterier</a>&nbsp;</div>
+			<div class="action"><a href="?view=edit_packlist"><?php echo t('New') ?></a></div>
+			<div class="action"><a href="?view=criterias"><?php echo t('Criterias') ?></a>&nbsp;</div>
 <?php
 				}
 ?>
@@ -1211,11 +1207,11 @@
 		<table>
 			<thead>
 				<tr>
-					<th>Namn</th>
-					<th>Från</th>
-					<th>Till</th>
-					<th>Objekt</th>
-					<th>Vikt</th>
+					<th><?php echo t('Name') ?></th>
+					<th><?php echo t('From') ?></th>
+					<th><?php echo t('To') ?></th>
+					<th><?php echo t('Object') ?></th>
+					<th><?php echo t('Weight') ?></th>
 					<th></th>
 				</tr>
 			</thead>
@@ -1248,14 +1244,14 @@
 						<?php echo substr($v['to'], 0, strpos($v['to'], ' ')) ?>
 					</td>
 					<td>
-						<?php echo $v['item_amount'] ?> st
+						<?php echo $v['item_amount'] ?> <?php echo t('pcs') ?>
 					</td>
 					<td class="counter">
 						<?php echo $v['weight'] ?>g
 					</td>
 					<td class="manage">
-						<a href="?action=delete_packlist&amp;id_packlists=<?php echo $v['id'] ?>&view=packlists" class="confirm">Radera</a>
-						<a href="?view=edit_packlist&amp;id_packlists=<?php echo $v['id'] ?>">Redigera</a>
+						<a href="?action=delete_packlist&amp;id_packlists=<?php echo $v['id'] ?>&view=packlists" class="confirm"><?php echo t('Remove') ?></a>
+						<a href="?view=edit_packlist&amp;id_packlists=<?php echo $v['id'] ?>"><?php echo t('Edit') ?></a>
 					</td>
 				</tr>
 <?php
@@ -1274,16 +1270,16 @@
 			}
 ?>
 		<h2>
-			Kriterier
-			<div class="action"><a href="?view=edit_criteria">Ny</a></div>
+			<?php echo t('Criterias') ?>
+			<div class="action"><a href="?view=edit_criteria"><?php echo t('New') ?></a></div>
 		</h2>
 		<table>
 			<thead>
 				<tr>
-					<th>Namn</th>
-					<th>Dagsintervall</th>
-					<th>Ny-aktiv</th>
-					<th>Objekt</th>
+					<th><?php echo t('Name') ?></th>
+					<th><?php echo t('Day interval') ?></th>
+					<th><?php echo t('Add to new packlists') ?></th>
+					<th><?php echo t('Objects') ?></th>
 					<th></th>
 				</tr>
 			</thead>
@@ -1300,14 +1296,14 @@
 						<?php echo $v['interval_days'] ?>
 					</td>
 					<td>
-						<?php echo (int)$v['add_to_new_packlists'] ? 'Ja' : 'Nej' ?>
+						<?php echo (int)$v['add_to_new_packlists'] ? t('Yes') : t('No') ?>
 					</td>
 					<td class="counter">
 						<?php echo $v['item_amount'] ?> st
 					</td>
 					<td class="manage">
-						<a href="?action=delete_criteria&amp;id_criterias=<?php echo $v['id'] ?>&view=criterias" class="confirm">Radera</a>
-						<a href="?view=edit_criteria&amp;id_criterias=<?php echo $v['id'] ?>">Redigera</a>
+						<a href="?action=delete_criteria&amp;id_criterias=<?php echo $v['id'] ?>&view=criterias" class="confirm"><?php echo t('Remove') ?></a>
+						<a href="?view=edit_criteria&amp;id_criterias=<?php echo $v['id'] ?>"><?php echo t('Edit') ?></a>
 					</td>
 				</tr>
 <?php

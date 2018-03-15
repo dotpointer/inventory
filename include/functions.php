@@ -22,6 +22,7 @@
 	# 2018-02-22 22:21:00 - adding packlist item relation comment
 	# 2018-03-14 23:02:00 - adding criterias handling
 	# 2018-03-14 23:44:00 - adding criterias handling continued
+	# 2018-03-15 02:30:00 - translations
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');
@@ -78,13 +79,13 @@
 	define('STATUS_WISHED_SKIPPED', 7);
 
 	$statuses = array(
-		STATUS_OWN => array('text' => 'Äger', 'name' => 'own'),
-		STATUS_OWNSELL => array('text' => 'Säljes', 'name' => 'ownsell'),
-		STATUS_SOLD => array('text' => 'Såld', 'name' => 'sold'),
-		STATUS_GIVENAWAY =>  array('text' => 'Bortskänkt', 'name' => 'givenaway'),
-		STATUS_DUMPED =>  array('text' => 'Kastad', 'name' => 'dumped'),
-		STATUS_WISHED => array('text' => 'Önskad', 'name' => 'wished'),
-		STATUS_WISHED_SKIPPED => array('text' => 'Önskad - Dumpad', 'name' => 'wishedskipped'),
+		STATUS_OWN => array('text' => 'Own', 'name' => 'own'),
+		STATUS_OWNSELL => array('text' => 'Selling', 'name' => 'ownsell'),
+		STATUS_SOLD => array('text' => 'Sold', 'name' => 'sold'),
+		STATUS_GIVENAWAY =>  array('text' => 'Given away', 'name' => 'givenaway'),
+		STATUS_DUMPED =>  array('text' => 'Dumped', 'name' => 'dumped'),
+		STATUS_WISHED => array('text' => 'Wished', 'name' => 'wished'),
+		STATUS_WISHED_SKIPPED => array('text' => 'Wished - dumped', 'name' => 'wishedskipped'),
 	);
 
 	define('USAGE_FREQUENT', 4);
@@ -92,16 +93,14 @@
 	define('USAGE_SELDOM', 2);
 	define('USAGE_NEVER', 1);
 	define('USAGE_UNKNOWN', 0);
+
 	$usage = array(
-
-		USAGE_FREQUENT => 'Ofta',
-		USAGE_SOMETIMES => 'Ibland',
-		USAGE_SELDOM => 'Sällan',
-		USAGE_NEVER => 'Inte',
-		USAGE_UNKNOWN => 'Okänt'
+		USAGE_FREQUENT => 'Frequent',
+		USAGE_SOMETIMES => 'Sometimes',
+		USAGE_SELDOM => 'Seldom',
+		USAGE_NEVER => 'Never',
+		USAGE_UNKNOWN => 'Unknown'
 	);
-
-
 
 	define('THUMBNAIL_DIR', DATA_DIR.'inventory/thumbnails/');
 	define('FILE_DIR', DATA_DIR.'inventory/originals/');
@@ -203,4 +202,219 @@
 		die('ImageMagick is not installed.');
 	}
 
+	function init_constants() {
+		global $statuses, $usage;
+
+		$statuses = array(
+			STATUS_OWN => array('text' => t('Own'), 'name' => 'own'),
+			STATUS_OWNSELL => array('text' => t('Selling'), 'name' => 'ownsell'),
+			STATUS_SOLD => array('text' => t('Sold'), 'name' => 'sold'),
+			STATUS_GIVENAWAY =>  array('text' => t('Given away'), 'name' => 'givenaway'),
+			STATUS_DUMPED =>  array('text' => t('Dumped'), 'name' => 'dumped'),
+			STATUS_WISHED => array('text' => t('Wished'), 'name' => 'wished'),
+			STATUS_WISHED_SKIPPED => array('text' => t('Wished - dumped'), 'name' => 'wishedskipped'),
+		);
+
+		$usage = array(
+			USAGE_FREQUENT => t('Frequent'),
+			USAGE_SOMETIMES => t('Sometimes'),
+			USAGE_SELDOM => t('Seldom'),
+			USAGE_NEVER => t('Never'),
+			USAGE_UNKNOWN => t('Unknown')
+		);
+
+	}
+
+	# --- translation ----
+
+	# to get a matching locale translation index, send in locale and get a working translation index in return
+	function get_working_locale($langs_available, $try_lang = false) {
+
+		$accept_langs = array();
+
+		# no language to try provided?
+		if (!$try_lang) {
+			# try with header - or if not there, go en
+			$try_lang = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : false;
+		}
+
+		# any language to try now?
+		if ($try_lang) {
+			preg_match_all(
+				'/([a-z]{1,8}(-[a-z]{1,8})?)\s*(;\s*q\s*=\s*(1|0\.\d+))?/i',
+				$try_lang,
+				$lang_parse
+			);
+
+			if (isset($lang_parse[1]) && count($lang_parse[1])) {
+
+				# create a list like 'en-US' => 0.7
+				$accept_langs = array_combine($lang_parse[1], $lang_parse[4]);
+
+				# set default to 1 for any without q factor
+				foreach ($accept_langs as $k => $v) {
+					if ($v === '') {
+						$accept_langs[$k] = 1;
+					}
+				}
+
+				arsort($accept_langs, SORT_NUMERIC);
+			}# if match
+		} # if-trylang
+
+
+		# walk the languages - en, sv, es etc...
+		foreach (array_keys($accept_langs) as $current_acceptlang) {
+			# walk the available languages provided
+			foreach ($langs_available as $k => $v) {
+				# walk the locales in this provided language
+				foreach ($v['locales'] as $k2 => $v2) {
+					# compare the language
+					if (strtolower($v2) === strtolower($current_acceptlang)) {
+						return $k;
+					}
+				}
+			}
+
+			$acceptlang_intro = stristr($current_acceptlang, '-') ? substr($current_acceptlang, 0, strpos($current_acceptlang, '-')) : $current_acceptlang;
+
+			foreach ($langs_available as $k => $v) {
+				foreach ($v['locales'] as $k2 => $v2) {
+					if (strtolower($v2) === strtolower($acceptlang_intro)) {
+						return $k;
+					}
+				}
+			}
+
+			foreach ($langs_available as $k => $v) {
+				foreach ($v['locales'] as $availlang) {
+					if (strtolower($acceptlang_intro) === strtolower(stristr($availlang, '-') ? substr($availlang, 0, strpos($availlang, '-')) : $availlang)) {
+						return $k;
+
+					}
+				}
+			}
+		}
+
+		return 0;
+	}
+
+	# to translate string
+	function t($s) {
+		# get translation data and translations
+		global $translations;
+
+		# make sure we have the index
+		$tindex = isset($translations['current']['index']) ? $translations['current']['index'] : 0;
+
+		# is this language not present
+		if (!isset($translations['languages'][$tindex])) {
+			# then get out
+			return $s;
+		}
+
+		foreach ($translations['languages'][$tindex]['content'] as $sentence) {
+			if (
+				# are all parts there
+				isset($sentence[0], $sentence[1]) &&
+				# is the sentence the one we are looking for
+				$s === $sentence[0] &&
+				# and there is an replacement sentence
+				$sentence[1] !== false
+			) {
+					# then return it
+				return $sentence[1];
+			}
+		}
+
+		if (isset($translations['languages'][$tindex]['content_logged_in'])) {
+			foreach ($translations['languages'][$tindex]['content_logged_in'] as $sentence) {
+				if (
+					# are all parts there
+					isset($sentence[0], $sentence[1]) &&
+					# is the sentence the one we are looking for
+					$s === $sentence[0] &&
+					# and there is an replacement sentence
+					$sentence[1] !== false
+				) {
+					# then return it
+				return $sentence[1];
+				}
+			}
+		}
+
+$file = '/tmp/people.txt';
+// Open the file to get existing content
+$current = file_get_contents($file);
+// Append a new person to the file
+$current .= $s."\n";
+// Write the contents back to the file
+file_put_contents($file, $current);
+
+		return $s;
+	}
+
+	# to translate string
+	function get_translation_texts() {
+		# get translation data and translations
+		global $translations;
+
+		# make sure we have the index
+		$tindex = isset($translations['current']['index']) ? $translations['current']['index'] : 0;
+
+		# is this language not present
+		if (!isset($translations['languages'][$tindex])) {
+			# then get out
+			return array();
+		}
+
+		return is_logged_in() ? array_merge($translations['languages'][$tindex]['content'], $translations['languages'][$tindex]['content_logged_in']) : $translations['languages'][$tindex]['content'];
+	}
+
+	# base structure for translations
+	$translations = array(
+		'current' => array(
+			'index' => 0,
+			'locale' => 'en-US'
+		),
+		'languages' => array(
+			array(
+				# content for the locale
+				'content' => array(),
+				'content_logged_in' => array(),
+				'locales' => array(
+					'en-US'
+				)
+			)
+		)
+	);
+
+	function start_translations() {
+		global $translations;
+
+		# directory where the translations are located
+		$locale_basepath = substr(__FILE__, 0, strrpos(__FILE__, '/') + 1 ).'locales/';
+
+		# scan the directory
+		$dircontents = scandir($locale_basepath);
+
+		# walk contents of directory
+		foreach ($dircontents as $item) {
+
+			# does this item end with the desired ending?
+			if (substr($item, -9) === '.lang.php') {
+
+				require_once($locale_basepath.$item);
+			}
+		}
+
+		# get the parameters
+		$translations['current']['index'] = isset($_REQUEST['translationindex']) ? $_REQUEST['translationindex'] : false;
+
+		$translations['current']['index'] = !isset($_SESSION['translation_index']) ? get_working_locale($translations['languages']) : $_SESSION['translation_index'];
+		$translations['current']['locale'] = reset($translations['languages'][$translations['current']['index']]['locales']);
+		$_SESSION['translation_index'] = $translations['current']['index'];
+	}
+
+	# --- end of translations
 ?>
