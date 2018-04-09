@@ -38,6 +38,8 @@
 	# 2018-03-14 23:44:00 - adding criteria handling continued
 	# 2018-03-15 00:47:00 - adding criteria handling continued
 	# 2018-03-15 02:30:00 - translations
+	# 2018-04-08 12:42:10 - adding location history
+	# 2018-04-09 12:12:00 - cleanup
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -106,6 +108,7 @@
 		header('Location: http://www.'.BASE_DOMAINNAME.'/?section=visum&id_sites='.ID_VISUM);
 		die();
 	}
+
 ?><html>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -174,6 +177,7 @@
 <?php		} # if-is-logged-in ?>
 	</ul>
 <?php
+
 	# find out what view to show
 	switch ($view) {
 		default:
@@ -443,7 +447,7 @@
 				<input type="hidden" name="id_files" value="<?php echo isset($item['price']) ? $item['id_files'] : ''?>">
 <?php 		} ?>
 			</div>
-			<div class="row">
+			<div class="row">files
 				<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
 			</div>
 		</fieldset>
@@ -562,6 +566,28 @@
 		</fieldset>
 	</form>
 <?php
+			break;
+
+		case 'location_history':
+?>
+		<table>
+			<thead>
+				<tr>
+					<th><?php echo t('Plats') ?></th>
+					<th><?php echo t('Datum') ?></th>
+				</tr>
+			</thead>
+			<tbody>
+<?php 		foreach ($location_history as $k => $v) { ?>
+				<tr>
+					<td><?php echo implode(json_decode($v['title']), ' / '); ?></td>
+					<td><?php echo $v['created']?></td>
+				</tr>
+<?php		} ?>
+			</tbody>
+		</table>
+<?php
+
 			break;
 
 		case 'index': # to list items
@@ -708,6 +734,8 @@
 						<br><br>
 
 						<a href="?view=edit_item&amp;id_items=<?php echo $v['id']?>"><?php echo t('Edit') ?></a>
+						<br>
+						<a href="?view=location_history&amp;id_items=<?php echo $v['id']?>"><?php echo t('Location history') ?></a>
 					</td>
 				</tr>
 <?php

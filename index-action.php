@@ -22,6 +22,8 @@
 # 2018-02-22 22:21:00 - adding packlist item relation comment
 # 2018-03-14 23:02:00 - adding criteria handling
 # 2018-03-15 00:47:00 - adding criteria handling continued
+# 2018-04-08 12:08:55 - adding location history
+# 2018-04-09 12:10:00 - cleanup
 
 if (!isset($action)) die();
 
@@ -281,6 +283,53 @@ switch ($action) {
 
 		break;
 
+	case 'location_fix_fill_location_history':
+
+		die();
+
+		# get all items
+		$items = db_query($link, 'SELECT id, updated FROM items');
+
+		# walk items
+		foreach ($items as $item) {
+			$id_items = $item['id'];
+			# try to get the locations of the item
+			$locations = db_query($link, '
+				SELECT
+					r.id AS id_relations_items_locations,
+					l.id AS id_locations,
+					l.title
+				FROM
+					relations_items_locations AS r,
+					locations AS l
+				WHERE
+					r.id_locations = l.id
+					AND
+					r.id_items="'.dbres($link, $id_items).'"
+				');
+
+			if (count($locations) < 1) {
+				continue;
+			}
+
+			foreach ($locations as $key => $location) {
+				$locations[$key] = $location['title'];
+			}
+			$locations = json_encode($locations);
+
+			# get last location history title
+			$sql = 'SELECT title FROM location_history WHERE id_items="'.dbres($link, $id_items).'" ORDER BY id DESC LIMIT 1';
+			$location_history = db_query($link, $sql);
+			if (!count($location_history) || $location_history[0]['title'] !== $locations) {
+					# then insert the relation
+					$sql = 'INSERT INTO location_history (id_items, title, created) VALUES('.(int)$id_items.',"'.dbres($link, $locations).'", "'.dbres($link, $item['updated']).'")';
+					$r = db_query($link, $sql);
+			}
+		}
+
+		die();
+
+		break;
 	case 'delete_location':
 
 		if (!is_logged_in()) break;
@@ -314,7 +363,34 @@ switch ($action) {
 				$category = false;
 			} else {
 				$sql = 'INSERT INTO categories (title) VALUES("'.dbres($link, $category).'")';
-				db_query($link, $sql);
+				db_query($link, $sql);		# try to get the locations of the item
+		$locations = db_query($link, '
+			SELECT
+				r.id AS id_relations_items_locations,
+				l.id AS id_locations,
+				l.title
+			FROM
+				relations_items_locations AS r,
+				locations AS l
+			WHERE
+				r.id_locations = l.id
+				AND
+				r.id_items="'.dbres($link, $id_items).'"
+			');
+
+		foreach ($locations as $key => $location) {
+			$locations[$key] = $location['title'];
+		}
+		$locations = implode(', ', $locations);
+
+		# get last location history title
+		$sql = 'SELECT title FROM location_history WHERE id_items="'.dbres($link, $id_items).'" ORDER BY id DESC LIMIT 1';
+		$location_history = db_query($link, $sql);
+		if (!count($location_history) || $location_history[0]['title'] !== $locations) {
+				# then insert the relation
+				$sql = 'INSERT INTO location_history (id_items, title, created) VALUES('.(int)$id_items.',"'.dbres($link, $locations).'", "'.date('Y-m-d H:i:s').'")';
+				$r = db_query($link, $sql);
+		}
 				$id_categories = db_insert_id($link);
 				$category = false;
 			}
@@ -411,6 +487,35 @@ switch ($action) {
 		if (count($valid_id_relations_items_locations)) {
 			$sql = 'DELETE FROM relations_items_locations WHERE id_items="'.(int)$id_items.'" AND id NOT IN ('.implode(',', $valid_id_relations_items_locations).')';
 			db_query($link, $sql);
+		}
+
+		# try to get the locations of the item
+		$locations = db_query($link, '
+			SELECT
+				r.id AS id_relations_items_locations,
+				l.id AS id_locations,
+				l.title
+			FROM
+				relations_items_locations AS r,
+				locations AS l
+			WHERE
+				r.id_locations = l.id
+				AND
+				r.id_items="'.dbres($link, $id_items).'"
+			');
+
+		foreach ($locations as $key => $location) {
+			$locations[$key] = $location['title'];
+		}
+		$locations = json_encode($locations);
+
+		# get last location history title
+		$sql = 'SELECT title FROM location_history WHERE id_items="'.dbres($link, $id_items).'" ORDER BY id DESC LIMIT 1';
+		$location_history = db_query($link, $sql);
+		if (!count($location_history) || $location_history[0]['title'] !== $locations) {
+				# then insert the relation
+				$sql = 'INSERT INTO location_history (id_items, title, created) VALUES('.(int)$id_items.',"'.dbres($link, $locations).'", "'.date('Y-m-d H:i:s').'")';
+				$r = db_query($link, $sql);
 		}
 
 		# --- end of location

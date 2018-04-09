@@ -25,6 +25,8 @@
 # 2018-03-14 23:02:00 - adding criteria handling
 # 2018-03-14 23:44:00 - adding criteria handling continued
 # 2018-03-15 00:47:00 - adding criteria handling continued
+# 2018-04-08 12:34:39 - adding location history
+# 2018-04-09 12:12:00 - cleanup
 
 if (!isset($view)) die();
 
@@ -34,6 +36,14 @@ $item_amount = db_query($link, 'SELECT COUNT(id) AS amount FROM items WHERE stat
 
 # check out what view we have
 switch ($view) {
+
+	case 'location_history':
+		if (!is_logged_in()) break;
+
+		$sql = 'SELECT * FROM location_history WHERE id="'.dbres($link, $id_items).'"';
+		$location_history = db_query($link, $sql);
+
+		break;
 
 	case 'edit_category': # to edit a category
 		if (!is_logged_in()) break;
