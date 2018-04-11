@@ -24,6 +24,7 @@
 # 2018-03-15 00:47:00 - adding criteria handling continued
 # 2018-04-08 12:08:55 - adding location history
 # 2018-04-09 12:10:00 - cleanup
+# 2018-04-11 13:39:00 - bug fix, correction for location query parameter that was used in actions
 
 if (!isset($action)) die();
 
@@ -312,8 +313,8 @@ switch ($action) {
 				continue;
 			}
 
-			foreach ($locations as $key => $location) {
-				$locations[$key] = $location['title'];
+			foreach ($locations as $key => $value) {
+				$locations[$key] = $value['title'];
 			}
 			$locations = json_encode($locations);
 
@@ -378,8 +379,8 @@ switch ($action) {
 				r.id_items="'.dbres($link, $id_items).'"
 			');
 
-		foreach ($locations as $key => $location) {
-			$locations[$key] = $location['title'];
+		foreach ($locations as $key => $value) {
+			$locations[$key] = $value['title'];
 		}
 		$locations = implode(', ', $locations);
 
@@ -504,8 +505,8 @@ switch ($action) {
 				r.id_items="'.dbres($link, $id_items).'"
 			');
 
-		foreach ($locations as $key => $location) {
-			$locations[$key] = $location['title'];
+		foreach ($locations as $key => $value) {
+			$locations[$key] = $value['title'];
 		}
 		$locations = json_encode($locations);
 
