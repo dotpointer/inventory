@@ -25,6 +25,7 @@
 # 2018-04-08 12:08:55 - adding location history
 # 2018-04-09 12:10:00 - cleanup
 # 2018-04-11 13:39:00 - bug fix, correction for location query parameter that was used in actions
+# 2018-04-13 23:49:00 - adding packlist notes
 
 if (!isset($action)) die();
 
@@ -796,6 +797,23 @@ switch ($action) {
 		# delete packlist relations
 		$sql = 'INSERT INTO  relations_packlists_items (id_packlists, id_items) VALUES("'.dbres($link, $id_packlists).'","'.dbres($link, $id_items).'")';
 		$r = db_query($link, $sql);
+
+		echo json_encode(array(
+			'status' => true
+		));
+		die();
+
+	case 'update_packlist_notes':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_packlists)) die('Missing id_packlists.');
+
+		$iu = dbpua($link, array(
+			'notes' => $notes
+		));
+		$sql = 'UPDATE packlists SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_packlists).'"';
+		db_query($link, $sql);
 
 		echo json_encode(array(
 			'status' => true

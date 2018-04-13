@@ -2,6 +2,7 @@
 
 # changelog
 # 2018-03-15 02:30:00
+# 2018-04-13 23:49:00 - adding packlist notes
 
 # store this into translations
 $translations['languages'][] = array(
@@ -65,6 +66,7 @@ $translations['languages'][] = array(
 		array('Next page', 'Nästa sida'),
 		array('No description.', 'Ingen beskrivning.'),
 		array('No', 'Nej'),
+		array('Notes', 'Anteckningar'),
 		array('Object', 'Objekt'),
 		array('Objects', 'Objekt'),
 		array('Own', 'Äger'),

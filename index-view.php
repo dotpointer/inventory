@@ -27,6 +27,7 @@
 # 2018-03-15 00:47:00 - adding criteria handling continued
 # 2018-04-08 12:34:39 - adding location history
 # 2018-04-09 12:12:00 - cleanup
+# 2018-04-13 23:50:00 - adding packlist notes
 
 if (!isset($view)) die();
 
@@ -149,8 +150,6 @@ switch ($view) {
 		if (!is_logged_in()) break;
 
 		$packlist = false;
-
-
 
 		# is item id specified?
 		if ($id_packlists) {

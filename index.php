@@ -41,6 +41,7 @@
 	# 2018-04-08 12:42:10 - adding location history
 	# 2018-04-09 12:12:00 - cleanup
 	# 2018-04-13 22:57:00 - adding packlist column for days
+	# 2018-04-13 23:50:00 - adding packlist notes
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -83,6 +84,7 @@
 	$inuse = isset($_REQUEST['inuse']) ? $_REQUEST['inuse'] : false;
 	$limit = isset($_REQUEST['limit']) ? $_REQUEST['limit'] : 25;
 	$location = isset($_REQUEST['location']) ? $_REQUEST['location'] : false;
+	$notes = isset($_REQUEST['notes']) ? $_REQUEST['notes'] : false;
 	$packed = isset($_REQUEST['packed']) ? $_REQUEST['packed'] : false;
 	$price = isset($_REQUEST['price']) ? $_REQUEST['price'] : false;
 	$source = isset($_REQUEST['source']) ? $_REQUEST['source'] : false;
@@ -1073,6 +1075,18 @@
 <?php
 		}
 ?>
+		<form action="?action=update_packlist_notes" method="post" id="form_update_packlist_notes">
+			<fieldset>
+				<input type="hidden" name="id_packlists" value="<?php echo $packlist['id'] ?>">
+				<div class="row">
+					<label for="notes"><?php echo t('Notes') ?></label>
+					<textarea name="notes"><?php echo isset($packlist['notes']) ? $packlist['notes'] : ''?></textarea>
+				</div>
+				<div class="row">
+					<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
+				</div>
+			</fieldset>
+		</form>
 		<table>
 			<thead>
 				<tr>

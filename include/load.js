@@ -273,6 +273,23 @@
 					return false;
 				});
 
+				$('#form_update_packlist_notes').on('submit', function(e) {
+					$.postJSON("?action=update_packlist_notes&format=json", {
+						id_packlists: $(this).find('input[name="id_packlists"]').val(),
+						notes: $(this).find('textarea[name="notes"]').val()
+					}, function(data) {
+						// when done, show result list, forward result data
+						$(this).find('.status').remove();
+
+						$(this).find('input[type="submit"]:first').after(
+							$('<span>')
+								.addClass('status')
+								.text('Sparat')
+						);
+					}.bind(this));
+					e.preventDefault();
+					return false;
+				});
 
 				break;
 

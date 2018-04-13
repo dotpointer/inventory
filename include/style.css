@@ -109,6 +109,11 @@ form fieldset .row:nth-child(even) {
 /*	background-color: #c0c0c0; */
 }
 
+form fieldset span.status {
+	font-family: Courier, monospace;
+	margin-left: 5px;
+}
+
 h2 {
 	font-family: Courier, monospace;
 	padding-left: 40px;
