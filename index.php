@@ -40,6 +40,7 @@
 	# 2018-03-15 02:30:00 - translations
 	# 2018-04-08 12:42:10 - adding location history
 	# 2018-04-09 12:12:00 - cleanup
+	# 2018-04-13 22:57:00 - adding packlist column for days
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -1238,6 +1239,7 @@
 					<th><?php echo t('Name') ?></th>
 					<th><?php echo t('From') ?></th>
 					<th><?php echo t('To') ?></th>
+					<th><?php echo t('Days') ?></th>
 					<th><?php echo t('Object') ?></th>
 					<th><?php echo t('Weight') ?></th>
 					<th></th>
@@ -1260,6 +1262,11 @@
 					if ($f === 2 && strtotime($v['to']) >= time()) {
 						continue;
 					}
+
+					$date1 = new DateTime(substr($v['from'], 0, strpos($v['from'], ' ')));
+					$date2 = new DateTime(substr($v['to'], 0, strpos($v['to'], ' ')));
+
+					$daysdiff = $date2->diff($date1)->format("%a") + 1;
 ?>
 				<tr>
 					<td>
@@ -1270,6 +1277,9 @@
 					</td>
 					<td>
 						<?php echo substr($v['to'], 0, strpos($v['to'], ' ')) ?>
+					</td>
+					<td>
+						<?php echo $daysdiff ?>
 					</td>
 					<td>
 						<?php echo $v['item_amount'] ?> <?php echo t('pcs') ?>
