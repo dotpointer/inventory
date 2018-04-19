@@ -3,6 +3,7 @@
 # changelog
 # 2018-03-15 02:30:00
 # 2018-04-13 23:49:00 - adding packlist notes
+# 2018-04-19 14:49:00
 
 # store this into translations
 $translations['languages'][] = array(
@@ -24,6 +25,7 @@ $translations['languages'][] = array(
 		array('Cancel', 'Avbryt'),
 		array('Categories', 'Kategorier'),
 		array('Category', 'Kategori'),
+		array('Choose', 'Välj'),
 		array('C batteries', 'C-batterier'),
 		array('Coming', 'Kommer'),
 		array('Contents', 'Innehåll'),
@@ -40,7 +42,7 @@ $translations['languages'][] = array(
 		array('Edit criteria', 'Redigera kriterium'),
 		array('Edit inventory', 'Redigera inventarie'),
 		array('Edit', 'Redigera'),
-		array('Ended', 'Aslutade'),
+		array('Ended', 'Avslutade'),
 		array('Find','Sök'),
 		array('for category', 'för kategori'),
 		array('Frequent', 'Frekvent'),

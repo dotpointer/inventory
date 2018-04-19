@@ -42,6 +42,7 @@
 	# 2018-04-09 12:12:00 - cleanup
 	# 2018-04-13 22:57:00 - adding packlist column for days
 	# 2018-04-13 23:50:00 - adding packlist notes
+	# 2018-04-19 14:49:00 - updating criteria and packlist addition forms
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -704,13 +705,40 @@
 									<label><?php echo t('Add to packlist') ?></label>
 									<input type="hidden" value="<?php echo $v['id'] ?>" name="id_items" >
 									<select>
-										<?php foreach($packlists as $vx) {
-											if (strtotime($vx['to']) < time()) {
-												continue;
+										<option>-- <?php echo t('Choose') ?></option>
+										<optgroup label="<?php echo t('Coming') ?>">
+											<?php
+											foreach($packlists as $vx) {
+												if (strtotime($vx['from']) > time()) {
+											?>
+											<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
+											<?php
+												}
 											}
-										?>
-										<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
-										<?php } ?>
+											?>
+										</optgroup>
+										<optgroup label="<?php echo t('Current') ?>">
+											<?php
+											foreach($packlists as $vx) {
+												if (strtotime($vx['from']) <= time() && strtotime($vx['to']) >= time()) {
+											?>
+											<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
+											<?php
+												}
+											}
+											?>
+										</optgroup>
+										<optgroup label="<?php echo t('Ended') ?>">
+											<?php
+											foreach($packlists as $vx) {
+												if (strtotime($vx['to']) <= time()) {
+											?>
+											<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
+											<?php
+												}
+											}
+											?>
+										</optgroup>
 									</select>
 									<input type="submit" value="<?php echo t('Save') ?>" >
 								</div>
@@ -721,6 +749,7 @@
 									<label><?php echo t('Add to criteria') ?></label>
 									<input type="hidden" value="<?php echo $v['id'] ?>" name="id_items" >
 									<select>
+										<option>-- <?php echo t('Choose') ?></option>
 										<?php foreach($criterias as $vx) { ?>
 										<option value="<?php echo $vx['id']; ?>"><?php echo $vx['title']; ?></option>
 										<?php } ?>
