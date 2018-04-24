@@ -43,6 +43,7 @@
 	# 2018-04-13 22:57:00 - adding packlist column for days
 	# 2018-04-13 23:50:00 - adding packlist notes
 	# 2018-04-19 14:49:00 - updating criteria and packlist addition forms
+	# 2018-04-24 19:07:00 - adding created and updated to item index
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -757,6 +758,8 @@
 									<input type="submit" value="<?php echo t('Save') ?>" >
 								</div>
 							</form>
+							<br><br>
+							<i><?php echo t('Created').' '.$v['created'].', '.t('updated').' '.$v['updated'] ?>.</i>
 						</p>
 					</td>
 					<td>

@@ -4,6 +4,7 @@
 # 2018-03-15 02:30:00
 # 2018-04-13 23:49:00 - adding packlist notes
 # 2018-04-19 14:49:00
+# 2018-04-24 19:08:88 - adding created and updated
 
 # store this into translations
 $translations['languages'][] = array(
@@ -30,6 +31,7 @@ $translations['languages'][] = array(
 		array('Coming', 'Kommer'),
 		array('Contents', 'Innehåll'),
 		array('cotton', 'bomull'),
+		array('Created', 'Skapad'),
 		array('Criterias', 'Kriterier'),
 		array('Current', 'Nuvarande'),
 		array('Date acquired', 'Datum förvärvat'),
@@ -92,6 +94,7 @@ $translations['languages'][] = array(
 		array('To','Till'),
 		array('Type', 'Typ'),
 		array('Unknown', 'Okänt'),
+		array('updated', 'uppdaterad'),
 		array('Updated', 'Uppdaterade'),
 		array('Update', 'Uppdatera'),
 		array('Usage', 'Användning'),
