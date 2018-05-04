@@ -44,6 +44,7 @@
 	# 2018-04-13 23:50:00 - adding packlist notes
 	# 2018-04-19 14:49:00 - updating criteria and packlist addition forms
 	# 2018-04-24 19:07:00 - adding created and updated to item index
+	# 2018-05-04 23:58:00 - adding risk materials
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -61,6 +62,7 @@
 	$batteries_c = isset($_REQUEST['batteries_c']) ? $_REQUEST['batteries_c'] : false;
 	$batteries_d = isset($_REQUEST['batteries_d']) ? $_REQUEST['batteries_d'] : false;
 	$batteries_e = isset($_REQUEST['batteries_e']) ? $_REQUEST['batteries_e'] : false;
+	$materialrisk = isset($_REQUEST['materialrisk']) ? $_REQUEST['materialrisk'] : false;
 	$materials = isset($_REQUEST['materials']) ? $_REQUEST['materials'] : false;
 	$category = isset($_REQUEST['category']) ? $_REQUEST['category'] : false;
 	$comment = isset($_REQUEST['comment']) ? $_REQUEST['comment'] : false;
@@ -174,6 +176,8 @@
 ?>
 					</select>
 
+					<input type="checkbox" class="checkbox" id="materialrisk" name="materialrisk" value="1"<?php echo $materialrisk ? ' checked="checked" ' : '' ?>/>
+					<label for="materialrisk"><?php echo t('Risk materials') ?></label>
 					<input type="submit" name="submit" class="submit" value="Sök">
 					<br>
 				</fieldset>
@@ -611,7 +615,17 @@
 			}
 
 		?></h2>
-		<p><?php echo t('The search resulted in') ?> <?php echo $items_amount; ?> <?php echo t('hits') ?>.</p>
+		<p>
+			<?php echo t('The search resulted in') ?> <?php echo $items_amount; ?> <?php echo t('hits') ?>.
+			<?php if ($materialrisk) {
+				$tmp = array();
+				foreach ($mothmaterials as $v) {
+					$tmp[] = t($v);
+				}
+			?>
+			<?php echo t('Filtered on these risk materials').': '.(implode(', ', $tmp)); ?>.
+			<?php } ?>
+		</p>
 
 		<p class="browse">
 			<a href="?view=index&amp;find=<?php echo $find?>&amp;id_locations=<?php echo $id_locations?>&amp;id_categories_find=<?php echo $id_categories_find?>&amp;status_find=<?php echo $status_find?>&amp;start=<?php echo ($start-$limit) > 0 ? $start-$limit : 0 ?>&amp;limit=<?php echo $limit?>">&lt;&lt; <?php echo $start ?></a>

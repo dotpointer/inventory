@@ -28,6 +28,7 @@
 # 2018-04-08 12:34:39 - adding location history
 # 2018-04-09 12:12:00 - cleanup
 # 2018-04-13 23:50:00 - adding packlist notes
+# 2018-05-04 23:58:00 - adding risk materials
 
 if (!isset($view)) die();
 
@@ -337,6 +338,16 @@ switch ($view) {
 		if ($id_items && is_numeric($id_items)) {
 			# make a where clause about it
 			$where[] = 'id="'.dbres($link, $id_items).'"';
+		}
+
+		# is the material risk checked?
+		if ($materialrisk) {
+			$tmp = array();
+			foreach ($mothmaterials as $k => $v) {
+				$tmp[$k] = 'LOWER(materials) LIKE "% '.t($v).'%"';
+			}
+
+			$where[] = '('.implode(' OR ', $tmp).')';
 		}
 
 		# is status specified?

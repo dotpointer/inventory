@@ -5,6 +5,7 @@
 # 2018-04-13 23:49:00 - adding packlist notes
 # 2018-04-19 14:49:00
 # 2018-04-24 19:08:88 - adding created and updated
+# 2018-05-04 23:57:00 - adding risk materials
 
 # store this into translations
 $translations['languages'][] = array(
@@ -26,8 +27,8 @@ $translations['languages'][] = array(
 		array('Cancel', 'Avbryt'),
 		array('Categories', 'Kategorier'),
 		array('Category', 'Kategori'),
-		array('Choose', 'Välj'),
 		array('C batteries', 'C-batterier'),
+		array('Choose', 'Välj'),
 		array('Coming', 'Kommer'),
 		array('Contents', 'Innehåll'),
 		array('cotton', 'bomull'),
@@ -45,6 +46,7 @@ $translations['languages'][] = array(
 		array('Edit inventory', 'Redigera inventarie'),
 		array('Edit', 'Redigera'),
 		array('Ended', 'Avslutade'),
+		array('Filtered on these risk materials', 'Filtrerade på dessa riskmaterial'),
 		array('Find','Sök'),
 		array('for category', 'för kategori'),
 		array('Frequent', 'Frekvent'),
@@ -57,6 +59,7 @@ $translations['languages'][] = array(
 		array('In use', 'Används'),
 		array('Inventory list', 'Inventarieförteckning'),
 		array('JPEG image', 'JPEG-bild'),
+		array('leather', 'läder'),
 		array('Location', 'Plats'),
 		array('Locations', 'Platser'),
 		array('Manage','Hantera'),
@@ -77,6 +80,7 @@ $translations['languages'][] = array(
 		array('Packlists', 'Packlistor'),
 		array('pcs', 'st'),
 		array('Remove', 'Radera'),
+		array('Risk materials', 'Riskmaterial'),
 		array('Save', 'Spara'),
 		array('Search','Sök'),
 		array('Seldom', 'Sällan'),
@@ -84,6 +88,7 @@ $translations['languages'][] = array(
 		array('Set date', 'Sätt datum'),
 		array('Show edited inventory', 'Visa redigerad inventarie'),
 		array('Size', 'Storlek'),
+		array('skin', 'skinn'),
 		array('Sold', 'Såld'),
 		array('Sometimes', 'Ibland'),
 		array('Status', 'Status'),
@@ -104,6 +109,9 @@ $translations['languages'][] = array(
 		array('Weight', 'Vikt'),
 		array('Wished - dumped', 'Önskad - kastad'),
 		array('Wished','Önskad'),
+		array('woollen', 'ylle'),
+		array('wool', 'ull'),
+		array('yarn', 'garn'),
 		array('Yes', 'Ja')
 	)
 );

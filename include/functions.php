@@ -26,6 +26,7 @@
 	# 2018-04-08 11:31:01 - adding location history
 	# 2018-04-09 11:56:00 - cleanup
 	# 2018-04-13 23:49:00 - adding packlist notes
+	# 2018-05-04 23:56:00 - adding risk materials
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');
@@ -104,6 +105,15 @@
 		USAGE_SELDOM => 'Seldom',
 		USAGE_NEVER => 'Never',
 		USAGE_UNKNOWN => 'Unknown'
+	);
+
+	# materials that may get attacked by clothes moths
+	$mothmaterials = array(
+		'leather',
+		'skin',
+		'wool',
+		'woollen',
+		'yarn'
 	);
 
 	define('THUMBNAIL_DIR', DATA_DIR.'inventory/thumbnails/');

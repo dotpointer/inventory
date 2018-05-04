@@ -202,6 +202,12 @@ ul.menu li form fieldset input.submit {
 	margin-left: 5px;
 }
 
+ul.menu li form fieldset input.checkbox {
+	float: left;
+	margin-left: 5px;
+}
+
+
 ul.menu li form fieldset input.text {
 	margin:0;
 	margin-left: 5px;
