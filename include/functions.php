@@ -27,6 +27,7 @@
 	# 2018-04-09 11:56:00 - cleanup
 	# 2018-04-13 23:49:00 - adding packlist notes
 	# 2018-05-04 23:56:00 - adding risk materials
+	# 2018-05-05 00:02:00 - adding risk materials continued
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');
@@ -109,6 +110,7 @@
 
 	# materials that may get attacked by clothes moths
 	$mothmaterials = array(
+		'lamb wool',
 		'leather',
 		'skin',
 		'wool',

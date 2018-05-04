@@ -6,6 +6,7 @@
 # 2018-04-19 14:49:00
 # 2018-04-24 19:08:88 - adding created and updated
 # 2018-05-04 23:57:00 - adding risk materials
+# 2018-05-05 00:02:00 - adding risk materials continued
 
 # store this into translations
 $translations['languages'][] = array(
@@ -59,6 +60,7 @@ $translations['languages'][] = array(
 		array('In use', 'Används'),
 		array('Inventory list', 'Inventarieförteckning'),
 		array('JPEG image', 'JPEG-bild'),
+		array('lamb wool', 'lammull'),
 		array('leather', 'läder'),
 		array('Location', 'Plats'),
 		array('Locations', 'Platser'),
