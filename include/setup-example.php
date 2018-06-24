@@ -28,4 +28,16 @@
 
 	# allow login to be available or not, not implemented
 	# define('LOGIN_MODE', false);
+
+	# compose a random string here of more than 16 characters to use when encrypting local passwords
+	$password_salt = '';
+
+	# temporarily uncomment this and fill it in to create a local user to use for login
+	# $editusers = array(
+	#	array(
+	#		'username' => '',
+	#		'password' => ''
+	#	)
+	#);
+
 ?>

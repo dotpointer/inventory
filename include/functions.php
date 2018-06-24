@@ -29,6 +29,7 @@
 	# 2018-05-04 23:56:00 - adding risk materials
 	# 2018-05-05 00:02:00 - adding risk materials continued
 	# 2018-05-05 13:53:00 - adding risk materials continued
+	# 2018-06-24 17:57:00 - adding local login
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');
@@ -173,11 +174,21 @@
 		return $_SESSION[SITE_SHORTNAME]['user'][$field];
 	}
 
-	function print_login() {
+	function print_login($username) {
 ?>
-<p class="login">
-	<a href="http://www.<?php echo BASE_DOMAINNAME?>/?section=visum&id_sites=<?php echo ID_VISUM?>">Inloggning krävs, klicka här för att logga in.<a/>
-</p>
+	<h2>Logga in</h2>
+	<form action="?action=login&amp;logintype=local" method="post">
+		<fieldset>
+			<label for="username"><?php echo t('Username') ?></label>
+			<input class="text" type="text" name="username" value="<?php echo $username?>"><br>
+			<label for="password"><?php echo t('Password') ?></label>
+			<input class="text" type="text" name="password" value=""><br>
+			<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
+		</fieldset>
+	</form>
+	<p class="login">
+		<a href="http://www.<?php echo BASE_DOMAINNAME?>/?section=visum&id_sites=<?php echo ID_VISUM?>">Logga in med Visum här.<a/>
+	</p>
 <?php
 		return true;
 	}
@@ -393,4 +404,20 @@
 	}
 
 	# --- end of translations
+	function validate_user($s) {
+		if (preg_match('/[^A-Za-z0-9]/', $s)) return false;
+		if (strlen($s) < 3) return false;
+		if (strlen($s) > 16) return false;
+		return true;
+	}
+
+	function validate_pass($s) {
+		# at least 6 chars
+		if (strlen($s) < 6) return false;
+
+		# must contain a-z
+		if (!preg_match('/^.*([a-z]).*$/', $s, $m)) return false;
+		if (!preg_match('/^.*([0-9]).*$/', $s, $m)) return false;
+		return true;
+	}
 ?>

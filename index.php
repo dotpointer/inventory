@@ -45,10 +45,10 @@
 	# 2018-04-19 14:49:00 - updating criteria and packlist addition forms
 	# 2018-04-24 19:07:00 - adding created and updated to item index
 	# 2018-05-04 23:58:00 - adding risk materials
+	# 2018-06-24 17:59:00 - adding local login
 
 	# get required functionality
 	require_once('include/functions.php');
-
 	start_translations();
 
 	init_constants();
@@ -88,6 +88,7 @@
 	$inuse = isset($_REQUEST['inuse']) ? $_REQUEST['inuse'] : false;
 	$limit = isset($_REQUEST['limit']) ? $_REQUEST['limit'] : 25;
 	$location = isset($_REQUEST['location']) ? $_REQUEST['location'] : false;
+	$logintype = isset($_REQUEST['logintype']) ? $_REQUEST['logintype'] : false;
 	$notes = isset($_REQUEST['notes']) ? $_REQUEST['notes'] : false;
 	$packed = isset($_REQUEST['packed']) ? $_REQUEST['packed'] : false;
 	$price = isset($_REQUEST['price']) ? $_REQUEST['price'] : false;
@@ -103,19 +104,15 @@
 	$watt_max = isset($_REQUEST['watt_max']) ? $_REQUEST['watt_max'] : false;
 	$weight = isset($_REQUEST['weight']) ? $_REQUEST['weight'] : false;
 	$view = isset($_REQUEST['view']) ? $_REQUEST['view'] : false;
+	$username = isset($_REQUEST['username']) ? $_REQUEST['username'] : false;
+	$password = isset($_REQUEST['password']) ? $_REQUEST['password'] : false;
+	$password_retype = isset($_REQUEST['password_retype']) ? $_REQUEST['password_retype'] : false;
 
 	# action management
 	require_once('index-action.php');
 
 	# view management
 	require_once('index-view.php');
-
-	# send user to login page if not logged in
-	if (!is_logged_in()) {
-		header('Location: http://www.'.BASE_DOMAINNAME.'/?section=visum&id_sites='.ID_VISUM);
-		die();
-	}
-
 ?><html>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -139,6 +136,18 @@
 
 </head>
 <body>
+<?php
+	if (isset($editusers)) {
+?>
+	<p>
+		<b><?php echo t('Note!') ?></b>
+		<?php echo t('The user editing array is still defined. Please comment this out in the setup file, otherwise this will continue to override user settings made on the site.'); ?>
+	</p>
+<?php
+	}
+
+	if (is_logged_in()) {
+?>
 	<ul class="menu">
 		<li><a href="?view=index"><?php echo t('Inventory') ?></a></li>
 <?php 		if (is_logged_in()) { ?>
@@ -146,6 +155,7 @@
 		<li><a href="?view=locations"><?php echo t('Locations') ?></a></li>
 		<li><a href="?view=edit_item"><?php echo t('New') ?></a></li>
 		<li><a href="?view=packlists"><?php echo t('Packlists') ?></a></li>
+		<li><a href="?action=logout&amp;view=login"><?php echo t('Logout') ?></a></li>
 
 		<li>
 			<form action="?" method="post">
@@ -186,19 +196,20 @@
 <?php		} # if-is-logged-in ?>
 	</ul>
 <?php
+	}
 
 	# find out what view to show
 	switch ($view) {
 		default:
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 			break;
 
 		case 'edit_category': # to insert or update a category
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
@@ -219,7 +230,7 @@
 
 		case 'edit_criteria': # to insert or update a criteria
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
@@ -262,7 +273,7 @@
 
 		case 'edit_item': # to insert or update an inventory item
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
@@ -427,7 +438,7 @@
 
 		case 'edit_location': # to insert or update a location
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
@@ -466,7 +477,7 @@
 
 		case 'edit_packlist': # to insert or update a packlist
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
@@ -549,7 +560,7 @@
 
 		case 'edit_relation_packlists_items': # to insert or update a packlist
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
@@ -577,6 +588,45 @@
 <?php
 			break;
 
+		case 'edit_user': # to insert or update a standalone user
+			if (!is_logged_in()) {
+				print_login($username);
+				break;
+			}
+			break;
+?>
+	<h2>Redigera användare<?php
+		if (isset($user['id'])) {
+			echo ' #'.$user['id'];
+		}
+?></h2>
+	<form action="?action=insert_update_user" method="post">
+		<fieldset>
+			<input type="hidden" name="view" value="users">
+			<input type="hidden" name="id_users" value="<?php echo isset($user['id']) ? $user['id'] : ''?>">
+
+			<div class="row">
+				<label for="title"><?php echo t('Username') ?></label>
+				<input class="text" type="text" name="username" value="<?php echo isset($user['username']) ? $user['title'] : ''?>"><br>
+			</div>
+
+			<div class="row">
+				<label for="title"><?php echo t('Password') ?></label>
+				<input class="text" type="text" name="password" value=""><br>
+			</div>
+
+			<div class="row">
+				<label for="title"><?php echo t('Password again') ?></label>
+				<input class="text" type="text" name="password_retype" value=""><br>
+			</div>
+
+			<div class="row">
+				<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
+			</div>
+		</fieldset>
+	</form>
+<?php
+			break;
 		case 'location_history':
 ?>
 		<table>
@@ -601,7 +651,7 @@
 
 		case 'index': # to list items
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
@@ -804,7 +854,7 @@
 
 		case 'categories': # to list item categories
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
@@ -914,7 +964,7 @@
 			break;
 		case 'criteria': # to show a criteria
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
@@ -966,7 +1016,7 @@
 			break;
 		case 'locations': # to list item locations
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
@@ -1077,7 +1127,7 @@
 
 		case 'packlist': # to list items from a packlist
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
@@ -1270,7 +1320,7 @@
 
 		case 'packlists': # to list item packlists
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 
@@ -1363,7 +1413,7 @@
 
 		case 'criterias': # to list criterias
 			if (!is_logged_in()) {
-				print_login();
+				print_login($username);
 				break;
 			}
 ?>
