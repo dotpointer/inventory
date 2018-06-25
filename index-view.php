@@ -29,24 +29,36 @@
 # 2018-04-09 12:12:00 - cleanup
 # 2018-04-13 23:50:00 - adding packlist notes
 # 2018-05-04 23:58:00 - adding risk materials
+# 2018-06-25 18:58:00 - adding local user management and multi user support
 
 if (!isset($view)) die();
 
-$categories_find = db_query($link, 'SELECT * FROM categories ORDER BY title');
+if (is_logged_in()) {
+	$categories_find = db_query($link, '
+		SELECT
+			*
+		FROM
+			categories
+		WHERE
+			id_users="'.dbres($link, get_logged_in_user('id')).'"
+		ORDER BY
+			title
+	');
 
-$item_amount = db_query($link, 'SELECT COUNT(id) AS amount FROM items WHERE status<='.STATUS_OWNSELL);
+	$item_amount = db_query($link, '
+		SELECT
+			COUNT(id) AS amount
+		FROM
+			items
+		WHERE
+			status<='.STATUS_OWNSELL.' AND
+			id_users="'.dbres($link, get_logged_in_user('id')).'"
+		'
+	);
+}
 
 # check out what view we have
 switch ($view) {
-
-	case 'location_history':
-		if (!is_logged_in()) break;
-
-		$sql = 'SELECT * FROM location_history WHERE id="'.dbres($link, $id_items).'"';
-		$location_history = db_query($link, $sql);
-
-		break;
-
 	case 'edit_category': # to edit a category
 		if (!is_logged_in()) break;
 
@@ -55,7 +67,15 @@ switch ($view) {
 		# is item id specified?
 		if ($id_categories) {
 			# try to get that item
-			$categories = db_query($link, 'SELECT * FROM categories WHERE id="'.dbres($link, $id_categories).'"');
+			$categories = db_query($link, '
+				SELECT
+					*
+				FROM
+					categories
+				WHERE
+					id="'.dbres($link, $id_categories).'" AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				');
 			# was there any matching items?
 			if (count($categories)) {
 				# then take the first of it
@@ -72,7 +92,15 @@ switch ($view) {
 		# is item id specified?
 		if ($id_criterias) {
 			# try to get that item
-			$criterias = db_query($link, 'SELECT * FROM criterias WHERE id="'.dbres($link, $id_criterias).'"');
+			$criterias = db_query($link, '
+				SELECT
+					*
+				FROM
+					criterias
+				WHERE
+					id="'.dbres($link, $id_criterias).'"
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				');
 			# was there any matching items?
 			if (count($criterias)) {
 				# then take the first of it
@@ -85,14 +113,31 @@ switch ($view) {
 	case 'edit_item': # to edit an item
 		if (!is_logged_in()) break;
 
-		$categories = db_query($link, 'SELECT * FROM categories ORDER BY title');
+		$categories = db_query($link, '
+			SELECT
+				*
+			FROM
+				categories
+			WHERE
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			ORDER BY
+				title
+			');
 
 		$item = false;
 
 		# is item id specified?
 		if ($id_items) {
 			# try to get that item
-			$items = db_query($link, 'SELECT * FROM items WHERE id="'.dbres($link, $id_items).'"');
+			$items = db_query($link, '
+				SELECT
+					*
+				FROM
+					items
+				WHERE
+					id="'.dbres($link, $id_items).'" AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+			');
 			# was there any matching items?
 			if (count($items)) {
 				# then take the first of it
@@ -111,9 +156,10 @@ switch ($view) {
 					relations_items_locations AS r,
 					locations AS l
 				WHERE
-					r.id_locations = l.id
-					AND
-					r.id_items="'.dbres($link, $id_items).'"
+					r.id_locations = l.id AND
+					r.id_items="'.dbres($link, $id_items).'" AND
+					r.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+					l.id_users="'.dbres($link, get_logged_in_user('id')).'"
 				');
 				# was there any matching locations?
 				if (count($locations)) {
@@ -138,7 +184,15 @@ switch ($view) {
 		# is item id specified?
 		if ($id_locations) {
 			# try to get that item
-			$locations = db_query($link, 'SELECT * FROM locations WHERE id="'.dbres($link, $id_locations).'"');
+			$locations = db_query($link, '
+				SELECT
+					*
+				FROM
+					locations
+				WHERE
+					id="'.dbres($link, $id_locations).'" AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				');
 			# was there any matching items?
 			if (count($locations)) {
 				# then take the first of it
@@ -155,13 +209,29 @@ switch ($view) {
 		# is item id specified?
 		if ($id_packlists) {
 			# try to get that item
-			$packlists = db_query($link, 'SELECT * FROM packlists WHERE id="'.dbres($link, $id_packlists).'"');
+			$packlists = db_query($link, '
+				SELECT
+					*
+				FROM
+					packlists
+				WHERE
+					id="'.dbres($link, $id_packlists).'" AND
+					d_users="'.dbres($link, get_logged_in_user('id')).'"
+			');
 			# was there any matching items?
 			if (count($packlists)) {
 				# then take the first of it
 				$packlist = $packlists[0];
 
-				$criterias_selected =  db_query($link, 'SELECT id_criterias AS id FROM relations_criterias_packlists WHERE id_packlists="'.dbres($link, $id_packlists).'"');
+				$criterias_selected =  db_query($link, '
+					SELECT
+						id_criterias AS id
+					FROM
+						relations_criterias_packlists
+					WHERE
+						id_packlists="'.dbres($link, $id_packlists).'" AND
+						id_users="'.dbres($link, get_logged_in_user('id')).'"
+					');
 			}
 			$criterias_available = db_query($link, '
 				SELECT
@@ -175,7 +245,8 @@ switch ($view) {
 						FROM
 							relations_criterias_packlists
 						WHERE
-							id_packlists="'.dbres($link, $id_packlists).'"
+							id_packlists="'.dbres($link, $id_packlists).'" AND
+							id_users="'.dbres($link, get_logged_in_user('id')).'"
 				)');
 			$criterias_selected =  db_query($link, '
 				SELECT
@@ -183,21 +254,58 @@ switch ($view) {
 					c.title
 				FROM
 					relations_criterias_packlists AS rcp
-					LEFT JOIN criterias AS c ON rcp.id_criterias = c.id
+					LEFT JOIN criterias AS c ON rcp.id_criterias = c.id AND c.id_users="'.dbres($link, get_logged_in_user('id')).'"
 				WHERE
-					rcp.id_packlists="'.dbres($link, $id_packlists).'"
+					rcp.id_packlists="'.dbres($link, $id_packlists).'" AND
+					rcp.id_users="'.dbres($link, get_logged_in_user('id')).'"
 			');
 
 			# sort by from, because some trips may not know the to-date
-			$packlists_copy = db_query($link, 'SELECT * FROM packlists WHERE NOT id="'.dbres($link, $id_packlists).'" ORDER BY `from` DESC');
+			$packlists_copy = db_query($link, '
+				SELECT
+					*
+				FROM
+					packlists
+				WHERE
+					NOT id="'.dbres($link, $id_packlists).'" AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				ORDER BY
+					`from` DESC
+				');
 		} else {
-			$criterias_available = db_query($link, 'SELECT * FROM criterias WHERE add_to_new_packlists=0');
-			$criterias_selected = db_query($link, 'SELECT * FROM criterias WHERE add_to_new_packlists=1');
+			$criterias_available = db_query($link, '
+				SELECT
+					*
+				FROM
+					criterias
+				WHERE
+					add_to_new_packlists=0 AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				');
+			$criterias_selected = db_query($link, '
+				SELECT
+					*
+				FROM
+					criterias
+				WHERE
+					add_to_new_packlists=1 AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+			');
 			# sort by from, because some trips may not know the to-date
-			$packlists_copy = db_query($link, 'SELECT * FROM packlists ORDER BY `from` DESC');
+			$packlists_copy = db_query($link, '
+				SELECT
+					*
+				FROM
+					packlists
+				WHERE
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				ORDER BY
+					`from` DESC
+				');
 		}
 
 		break;
+
 	case 'edit_relation_packlists_items': # to update a packlist relation
 
 		$relation = false;
@@ -210,8 +318,11 @@ switch ($view) {
 					rpi.comment
 				FROM
 					relations_packlists_items AS rpi
-						LEFT JOIN items AS i ON i.id = rpi.id_items
-				WHERE rpi.id="'.dbres($link, $id_relations_packlists_items).'"
+						LEFT JOIN items AS i ON i.id = rpi.id_items AND i.id_users="'.dbres($link, get_logged_in_user('id')).'"
+				WHERE
+					rpi.id="'.dbres($link, $id_relations_packlists_items).'" AND
+					rpi.id_users="'.dbres($link, get_logged_in_user('id')).'"
+
 		';
 
 		# try to get that item
@@ -223,10 +334,39 @@ switch ($view) {
 		}
 
 		break;
+	case 'edit_user': # to edit a user
+		if (!is_logged_in()) break;
+		$user = false;
+		# is item id specified?
+		if ($id_users) {
+			# try to get that item
+			$users = db_query($link, '
+				SELECT
+					*
+				FROM
+					users
+				WHERE
+					id="'.dbres($link, $id_users).'"
+			');
+			# was there any matching items?
+			if (count($users)) {
+				# then take the first of it
+				$user = $users[0];
+			}
+		}
+		break;
 
 	case 'category': # to display a category
 		if (!is_logged_in()) break;
-		$category = db_query($link, 'SELECT * FROM categories WHERE id="'.dbres($link, $id_categories).'"');
+		$category = db_query($link, '
+			SELECT
+				*
+			FROM
+				categories
+			WHERE
+				id="'.dbres($link, $id_categories).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			');
 		break;
 
 	case 'categories': # to display a list of categories
@@ -244,29 +384,96 @@ switch ($view) {
 			FROM
 				categories AS c
 				LEFT JOIN (
-					SELECT COUNT(id) AS amount, id_categories FROM items WHERE status<='.STATUS_OWNSELL.' GROUP BY id_categories
+					SELECT
+						COUNT(id) AS amount,
+						id_categories
+					FROM
+						items
+					WHERE
+						status<='.STATUS_OWNSELL.' AND
+						id_users="'.dbres($link, get_logged_in_user('id')).'"
+					GROUP BY
+						id_categories
 				) AS itemcount ON c.id = itemcount.id_categories
 				LEFT JOIN (
-					SELECT COUNT(id) AS amount, id_categories FROM items WHERE status<='.STATUS_OWNSELL.' AND inuse=0 GROUP BY id_categories
+					SELECT
+						COUNT(id) AS amount,
+						id_categories
+					FROM
+						items
+					WHERE
+						status<='.STATUS_OWNSELL.' AND
+						inuse=0 AND
+						id_users="'.dbres($link, get_logged_in_user('id')).'"
+					GROUP BY
+						id_categories
 				) AS inuse0 ON c.id = inuse0.id_categories
 				LEFT JOIN (
-					SELECT COUNT(id) AS amount, id_categories FROM items WHERE status<='.STATUS_OWNSELL.' AND inuse=1 GROUP BY id_categories
+					SELECT
+						COUNT(id) AS amount,
+						id_categories
+					FROM
+						items
+					WHERE
+						status<='.STATUS_OWNSELL.' AND
+						inuse=1 AND
+						id_users="'.dbres($link, get_logged_in_user('id')).'"
+					GROUP BY
+						id_categories
 				) AS inuse1 ON c.id = inuse1.id_categories
 				LEFT JOIN (
-					SELECT COUNT(id) AS amount, id_categories FROM items WHERE status<='.STATUS_OWNSELL.' AND inuse=2 GROUP BY id_categories
+					SELECT
+						COUNT(id) AS amount,
+						id_categories
+					FROM
+						items
+					WHERE
+						status<='.STATUS_OWNSELL.' AND
+						inuse=2 AND
+						id_users="'.dbres($link, get_logged_in_user('id')).'"
+					GROUP BY
+						id_categories
 				) AS inuse2 ON c.id = inuse2.id_categories
 				LEFT JOIN (
-					SELECT COUNT(id) AS amount, id_categories FROM items WHERE status<='.STATUS_OWNSELL.' AND inuse=3 GROUP BY id_categories
+					SELECT
+						COUNT(id) AS amount,
+						id_categories
+					FROM
+						items
+					WHERE
+						status<='.STATUS_OWNSELL.' AND
+						inuse=3 AND
+						id_users="'.dbres($link, get_logged_in_user('id')).'"
+					GROUP BY
+						id_categories
 				) AS inuse3 ON c.id = inuse3.id_categories
 				LEFT JOIN (
-					SELECT COUNT(id) AS amount, id_categories FROM items WHERE status<='.STATUS_OWNSELL.' AND inuse=4 GROUP BY id_categories
+					SELECT
+						COUNT(id) AS amount,
+						id_categories
+					FROM
+						items
+					WHERE
+						status<='.STATUS_OWNSELL.' AND
+						inuse=4 AND
+						id_users="'.dbres($link, get_logged_in_user('id')).'"
+					GROUP BY
+						id_categories
 				) AS inuse4 ON c.id = inuse4.id_categories
 			ORDER BY title');
 		break;
 
 	case 'criteria': # to display a category
 		if (!is_logged_in()) break;
-		$criterias = db_query($link, 'SELECT * FROM criterias WHERE id="'.dbres($link, $id_criterias).'"');
+		$criterias = db_query($link, '
+			SELECT
+				*
+			FROM
+				criterias
+			WHERE
+				id="'.dbres($link, $id_criterias).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+		');
 
 		if (!count($criterias)) die('Criteria not found');
 		$criteria = reset($criterias);
@@ -281,9 +488,10 @@ switch ($view) {
 				items AS i,
 				relations_criterias_items AS rpi
 			WHERE
-				i.id = rpi.id_items
-				AND
-				rpi.id_criterias = "'.dbres($link, $id_criterias).'"
+				i.id = rpi.id_items AND
+				rpi.id_criterias = "'.dbres($link, $id_criterias).'" AND
+				i.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+				rpi.id_users="'.dbres($link, get_logged_in_user('id')).'"
 			ORDER BY
 				title
 			');
@@ -295,6 +503,20 @@ switch ($view) {
 
 		# make sure id is specified
 		if (!$id_files || !is_numeric($id_files)) die('File ID must be specified.');
+
+		# make sure it is ours
+		$sql = '
+			SELECT
+				id
+			FROM
+				files
+			WHERE
+				id="'.dbres($link, $id_files).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the file, maybe it is not yours.'));
+		}
 
 		# get thumbnail?
 		if ($type === 'thumbnail') {
@@ -329,7 +551,15 @@ switch ($view) {
 			$where[] = '(i.id_categories="'.dbres($link, $id_categories_find).'")';
 
 			# get categories as this will be printed
-			$r = db_query($link, 'SELECT * FROM categories WHERE id="'.dbres($link, $id_categories_find).'"');
+			$r = db_query($link, '
+				SELECT
+					*
+				FROM
+					categories
+				WHERE
+					id="'.dbres($link, $id_categories_find).'" AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				');
 			$category = count($r) ? $r[0] : false;
 
 		}
@@ -409,6 +639,7 @@ switch ($view) {
 			$location = count($r) ? $r[0] : false;
 		}
 
+		$where[] = '(i.id_users="'.dbres($link, get_logged_in_user('id')).'")';
 
 		# is there a where clause?
 		if (count($where)) {
@@ -437,20 +668,51 @@ switch ($view) {
 					relations_items_locations AS r,
 					locations AS l
 				WHERE
-					r.id_locations = l.id
-					AND
-					r.id_items="'.dbres($link, $v['id']).'"
+					r.id_locations = l.id AND
+					r.id_items="'.dbres($link, $v['id']).'" AND
+					r.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+					l.id_users="'.dbres($link, get_logged_in_user('id')).'"
 				');
 				# was there any matching locations?
 			$items[$k]['locations'] = $locations;
 		}
 
 		# sort by from, because some trips may not know the to-date
-		$packlists = db_query($link, 'SELECT * FROM packlists ORDER BY `from` DESC');
+		$packlists = db_query($link, '
+			SELECT
+				*
+			FROM
+				packlists
+			WHERE
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			ORDER BY
+				`from` DESC
+		');
 
-		$criterias = db_query($link, 'SELECT * FROM criterias');
+		$criterias = db_query($link, '
+			SELECT
+				*
+			FROM
+				criterias
+			WHERE
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			');
 
 	#	die($sql);
+		break;
+
+	case 'location_history':
+		if (!is_logged_in()) break;
+		$sql = '
+			SELECT
+				*
+			FROM
+				location_history
+			WHERE
+				id="'.dbres($link, $id_items).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
+		$location_history = db_query($link, $sql);
 		break;
 
 	case 'locations': # to display a list of locations
@@ -470,19 +732,28 @@ switch ($view) {
 			FROM
 				locations AS l
 				LEFT JOIN (
-
-
 					SELECT
 						COUNT(ir.id) AS amount,
 						ir.id_locations,
 						ir.status
 					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+						(
+							SELECT
+								items.id,
+								relations_items_locations.id_locations,
+								items.status
+							FROM
+								items,
+								relations_items_locations
+							WHERE
+								items.id = relations_items_locations.id_items AND
+								items.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+								relations_items_locations.id_users="'.dbres($link, get_logged_in_user('id')).'"
+						) AS ir
 					WHERE
 						ir.status<='.STATUS_OWNSELL.'
 					GROUP BY
 						ir.id_locations
-
 				) AS itemcount ON l.id = itemcount.id_locations
 				LEFT JOIN (
 					SELECT
@@ -490,33 +761,70 @@ switch ($view) {
 						ir.id_locations,
 						ir.inuse
 					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+						(
+							SELECT
+								items.id,
+								relations_items_locations.id_locations,
+								items.inuse,
+								items.status
+							FROM
+								items,
+								relations_items_locations
+							WHERE
+								items.id = relations_items_locations.id_items AND
+								items.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+								relations_items_locations.id_users="'.dbres($link, get_logged_in_user('id')).'"
+							) AS ir
 					WHERE
 						ir.inuse=0
 					GROUP BY
 						ir.id_locations
 				) AS inuse0 ON l.id = inuse0.id_locations
 				LEFT JOIN (
-
 					SELECT
 						COUNT(ir.id) AS amount,
 						ir.id_locations,
 						ir.inuse
 					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+						(
+							SELECT
+								items.id,
+								relations_items_locations.id_locations,
+								items.inuse,
+								items.status
+							FROM
+								items,
+								relations_items_locations
+							WHERE
+								items.id = relations_items_locations.id_items AND
+								items.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+								relations_items_locations.id_users="'.dbres($link, get_logged_in_user('id')).'"
+						) AS ir
 					WHERE
 						ir.inuse=1
 					GROUP BY
 						ir.id_locations
 				) AS inuse1 ON l.id = inuse1.id_locations
 				LEFT JOIN (
-
 					SELECT
 						COUNT(ir.id) AS amount,
 						ir.id_locations,
 						ir.inuse
 					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+						(
+							SELECT
+								items.id,
+								relations_items_locations.id_locations,
+								items.inuse,
+								items.status
+							FROM
+								items,
+								relations_items_locations
+							WHERE
+								items.id = relations_items_locations.id_items AND
+								items.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+								relations_items_locations.id_users="'.dbres($link, get_logged_in_user('id')).'"
+						) AS ir
 					WHERE
 						ir.inuse=2
 					GROUP BY
@@ -524,44 +832,72 @@ switch ($view) {
 
 				) AS inuse2 ON l.id = inuse2.id_locations
 				LEFT JOIN (
-
 					SELECT
 						COUNT(ir.id) AS amount,
 						ir.id_locations,
 						ir.inuse
 					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+						(
+							SELECT
+								items.id,
+								relations_items_locations.id_locations,
+								items.inuse,
+								items.status
+							FROM
+								items,
+								relations_items_locations
+							WHERE
+								items.id = relations_items_locations.id_items AND
+								items.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+								relations_items_locations.id_users="'.dbres($link, get_logged_in_user('id')).'"
+						) AS ir
 					WHERE
 						ir.inuse=3
 					GROUP BY
 						ir.id_locations
-
-
 				) AS inuse3 ON l.id = inuse3.id_locations
 				LEFT JOIN (
-
 					SELECT
 						COUNT(ir.id) AS amount,
 						ir.id_locations,
 						ir.inuse
 					FROM
-						(SELECT items.id, relations_items_locations.id_locations, items.inuse, items.status FROM items, relations_items_locations WHERE items.id = relations_items_locations.id_items) AS ir
+						(
+							SELECT
+								items.id,
+								relations_items_locations.id_locations,
+								items.inuse,
+								items.status
+							FROM
+								items,
+								relations_items_locations
+							WHERE
+								items.id = relations_items_locations.id_items AND
+								items.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+								relations_items_locations.id_users="'.dbres($link, get_logged_in_user('id')).'"
+						) AS ir
 					WHERE
 						ir.inuse=4
 					GROUP BY
 						ir.id_locations
-
 				) AS inuse4 ON l.id = inuse4.id_locations
+			WHERE
+				l.id_users="'.dbres($link, get_logged_in_user('id')).'"
 			ORDER BY l.title';
-			# die($sql);
-
 			$locations = db_query($link, $sql);
-
 		break;
 
 	case 'packlist': # to display a category
 		if (!is_logged_in()) break;
-		$packlists = db_query($link, 'SELECT * FROM packlists WHERE id="'.dbres($link, $id_packlists).'"');
+		$packlists = db_query($link, '
+			SELECT
+				*
+			FROM
+				packlists
+			WHERE
+				id="'.dbres($link, $id_packlists).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			');
 
 		if (!count($packlists)) die('Packlist not found');
 		$packlist = reset($packlists);
@@ -580,9 +916,10 @@ switch ($view) {
 				items as i,
 				relations_packlists_items AS rpi
 			WHERE
-				i.id = rpi.id_items
-				AND
-				rpi.id_packlists = "'.dbres($link, $id_packlists).'"
+				i.id = rpi.id_items	AND
+				rpi.id_packlists = "'.dbres($link, $id_packlists).'" AND
+				i.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+				rpi.id_users="'.dbres($link, get_logged_in_user('id')).'"
 			ORDER BY
 				title
 			');
@@ -596,8 +933,12 @@ switch ($view) {
 				1 AS packlist_item,
 				packed,
 				inuse
-			FROM packlist_items
-			WHERE id_packlists="'.dbres($link, $id_packlists).'"'
+			FROM
+				packlist_items
+			WHERE
+				id_packlists="'.dbres($link, $id_packlists).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			'
 		);
 
 		# walk packlist items and add to items
@@ -611,12 +952,15 @@ switch ($view) {
 				rcp.id_packlists,
 				c.title,
 				c.interval_days
-			FROM criterias AS c,
+			FROM
+				criterias AS c,
 				relations_criterias_packlists AS rcp
 			WHERE
-				c.id=rcp.id_criterias
-				AND rcp.id_packlists = "'.dbres($link, $id_packlists).'"'
-		);
+				c.id=rcp.id_criterias AND
+				rcp.id_packlists = "'.dbres($link, $id_packlists).'" AND
+				c.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+				rcp.id_users="'.dbres($link, get_logged_in_user('id')).'"
+		');
 
 		if (count($criterias)) {
 
@@ -654,16 +998,19 @@ switch ($view) {
 							items AS i,
 							relations_criterias_items AS rci
 						WHERE
-							i.id = rci.id_items
-							AND rci.id_criterias="'.dbres($link, $criterias[$k]['id_criterias']).'"
-							AND i.id NOT IN (
+							i.id = rci.id_items AND 
+							rci.id_criterias="'.dbres($link, $criterias[$k]['id_criterias']).'" AND
+							i.id NOT IN (
 								SELECT
 									id_items
 								FROM
 									relations_packlists_items
 								WHERE
-									id_packlists="'.dbres($link, $id_packlists).'"
-							)
+									id_packlists="'.dbres($link, $id_packlists).'" AND
+									id_users="'.dbres($link, get_logged_in_user('id')).'"
+							) AND
+							i.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+							rci.id_users="'.dbres($link, get_logged_in_user('id')).'"
 						');
 				}
 			}
@@ -692,10 +1039,14 @@ switch ($view) {
 							items AS i,
 							relations_packlists_items AS rpi
 						WHERE
-							i.id = rpi.id_items
+							i.id = rpi.id_items AND
+							i.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+							rpi.id_users="'.dbres($link, get_logged_in_user('id')).'"
 						GROUP BY
 							rpi.id_packlists
-					) AS irpi ON irpi.id_packlists = p.id
+					) AS irpi ON irpi.id_packlists = p.id AND p.id_users="'.dbres($link, get_logged_in_user('id')).'"
+				WHERE
+					p.id_users="'.dbres($link, get_logged_in_user('id')).'"
 				ORDER BY
 					p.from DESC
 				';
@@ -722,15 +1073,30 @@ switch ($view) {
 							items AS i,
 							relations_criterias_items AS rci
 						WHERE
-							i.id = rci.id_items
+							i.id = rci.id_items AND
+							i.id_users="'.dbres($link, get_logged_in_user('id')).'" AND
+							rci.id_users="'.dbres($link, get_logged_in_user('id')).'"
 						GROUP BY
 							rci.id_criterias
-					) AS irci ON irci.id_criterias = c.id
+					) AS irci ON irci.id_criterias = c.id AND c.id_users="'.dbres($link, get_logged_in_user('id')).'"
 				ORDER BY
 					c.id DESC
 				';
 
 		$criterias = db_query($link, $sql);
+		break;
+
+	case 'users': # to display a list of users
+		if (!is_logged_in()) break;
+		$users = db_query($link, '
+			SELECT
+				id,
+				id_visum,
+				nickname,
+				username
+			FROM
+				users
+			ORDER BY id');
 		break;
 }
 

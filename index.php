@@ -46,6 +46,7 @@
 	# 2018-04-24 19:07:00 - adding created and updated to item index
 	# 2018-05-04 23:58:00 - adding risk materials
 	# 2018-06-24 17:59:00 - adding local login
+	# 2018-06-25 18:58:00 - adding local user management and multi user support
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -84,6 +85,7 @@
 	$id_packlist_items = isset($_REQUEST['id_packlist_items']) ? $_REQUEST['id_packlist_items'] : false;
 	$id_relations_criterias_items = isset($_REQUEST['id_relations_criterias_items']) ? $_REQUEST['id_relations_criterias_items'] : false;
 	$id_relations_packlists_items = isset($_REQUEST['id_relations_packlists_items']) ? $_REQUEST['id_relations_packlists_items'] : false;
+	$id_users= isset($_REQUEST['id_users']) ? $_REQUEST['id_users'] : false;
 	$interval_days = isset($_REQUEST['interval_days']) ? $_REQUEST['interval_days'] : false;
 	$inuse = isset($_REQUEST['inuse']) ? $_REQUEST['inuse'] : false;
 	$limit = isset($_REQUEST['limit']) ? $_REQUEST['limit'] : 25;
@@ -126,7 +128,7 @@
 			i = {
 				action: '<?php echo $action?>',
 				msg: {
-					confirm_deletion: 'Är du säker på att du vill radera? Detta kan inte ångras.',
+					confirm: '<?php echo t('Are you sure that you want to continue? This action cannot be reverted.'); ?>',
 				},
 				time_diff: <?php echo microtime(true) * 1000; ?>  - (new Date().getTime()),
 				view: '<?php echo $view?>'
@@ -155,6 +157,7 @@
 		<li><a href="?view=locations"><?php echo t('Locations') ?></a></li>
 		<li><a href="?view=edit_item"><?php echo t('New') ?></a></li>
 		<li><a href="?view=packlists"><?php echo t('Packlists') ?></a></li>
+		<li><a href="?view=users"><?php echo t('Users') ?></a></li>
 		<li><a href="?action=logout&amp;view=login"><?php echo t('Logout') ?></a></li>
 
 		<li>
@@ -188,7 +191,7 @@
 
 					<input type="checkbox" class="checkbox" id="materialrisk" name="materialrisk" value="1"<?php echo $materialrisk ? ' checked="checked" ' : '' ?>/>
 					<label for="materialrisk"><?php echo t('Risk materials') ?></label>
-					<input type="submit" name="submit" class="submit" value="Sök">
+					<input type="submit" name="submit" class="submit" value="<?php echo t('Search') ?>">
 					<br>
 				</fieldset>
 			</form>
@@ -264,7 +267,7 @@
 			</div>
 
 			<div class="row">
-				<input class="submit" type="submit" name="submit" value="Spara">
+				<input class="submit" type="submit" name="submit" value="<?php t('Save') ?>">
 			</div>
 		</fieldset>
 	</form>
@@ -375,7 +378,7 @@
 ?>
 
 				</select>
-				<input class="text" id="category" name="category" placeholder="Ny kategori">
+				<input class="text" id="category" name="category" placeholder="<?php echo t('New category') ?>">
 			</div>
 			<div class="row">
 				<label for="acquired"><?php echo t('Date acquired') ?></label>
@@ -593,31 +596,48 @@
 				print_login($username);
 				break;
 			}
-			break;
 ?>
-	<h2>Redigera användare<?php
-		if (isset($user['id'])) {
-			echo ' #'.$user['id'];
-		}
-?></h2>
+	<h2><?php echo isset($user['id']) ? t('Edit user').' #'.$user['id'] : t('Add user'); ?></h2>
+<?php
+			if (isset($user, $user['id_visum']) && $user['id_visum'] !== '0') {
+?>
+	<p>
+		<?php t('This is a Visum user, it cannot be edited locally.'); ?>
+	</p>
+	<p>
+		<a href="?view=users"><?php t('Back to user list.'); ?></a>
+	</p>
+<?php
+				break;
+			}
+?>
 	<form action="?action=insert_update_user" method="post">
 		<fieldset>
 			<input type="hidden" name="view" value="users">
 			<input type="hidden" name="id_users" value="<?php echo isset($user['id']) ? $user['id'] : ''?>">
 
 			<div class="row">
-				<label for="title"><?php echo t('Username') ?></label>
-				<input class="text" type="text" name="username" value="<?php echo isset($user['username']) ? $user['title'] : ''?>"><br>
+				<label for="username"><?php echo t('Username') ?></label>
+				<input class="text" type="text" name="username" value="<?php echo isset($user['username']) ? $user['username'] : ''?>"><br>
 			</div>
 
 			<div class="row">
-				<label for="title"><?php echo t('Password') ?></label>
-				<input class="text" type="text" name="password" value=""><br>
+				<label for="password"><?php echo t('Password') ?></label>
+				<input class="text" type="password" name="password" value="">
+<?php
+			if (isset($user['id'])) {
+?>
+				<i><?php echo t('Leave password fields blank to keep current password.') ?></i>
+<?php
+			}
+?>
+				<br>
 			</div>
 
 			<div class="row">
-				<label for="title"><?php echo t('Password again') ?></label>
-				<input class="text" type="text" name="password_retype" value=""><br>
+				<label for="password_retype"><?php echo t('Password again') ?></label>
+				<input class="text" type="password" name="password_retype" value="">
+				<br>
 			</div>
 
 			<div class="row">
@@ -632,8 +652,8 @@
 		<table>
 			<thead>
 				<tr>
-					<th><?php echo t('Plats') ?></th>
-					<th><?php echo t('Datum') ?></th>
+					<th><?php echo t('Location') ?></th>
+					<th><?php echo t('Date') ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -858,7 +878,7 @@
 				break;
 			}
 ?>
-		<h2>Kategorier</h2>
+		<h2><?php echo t('Categories') ?></h2>
 		<p class="actions">
 			<a href="?view=edit_category">Ny kategori</a>
 		</p>
@@ -927,8 +947,8 @@
 					<td class="progressbar">
 						<div class="inuse_progressbars">
 <?php
-						foreach ($amounts as $k => $v) {
-							?><div title="<?php echo $usage[$k]?>" class="inuse_progressbar<?php echo $k?>" style="width: <?php echo ($v / $total) * 100; ?>%"><?php echo $v ?> (<?php echo round(($v / $total) * 100,2); ?>%)</div><?php
+						foreach ($amounts as $k2 => $v2) {
+							?><div title="<?php echo $usage[$k2]?>" class="inuse_progressbar<?php echo $k2?>" style="width: <?php echo ($v2 / $total) * 100; ?>%"><?php echo $v2 ?> (<?php echo round(($v2 / $total) * 100,2); ?>%)</div><?php
 						}
 ?>
 					</td>
@@ -1020,7 +1040,7 @@
 				break;
 			}
 ?>
-		<h2>Platser<div class="action"><a href="?view=edit_location">Ny</a></div></h2>
+		<h2>Platser<div class="action"><a href="?view=edit_location"><?php echo t('New') ?></a></div></h2>
 		<table>
 			<thead>
 				<tr>
@@ -1097,13 +1117,9 @@
 					<td class="progressbar">
 						<div class="inuse_progressbars">
 <?php
-
-
 						foreach ($amounts as $k2 => $v2) {
 							?><div title="<?php echo $usage[$k2]?>" class="inuse_progressbar<?php echo $k2?>" style="width: <?php echo ($v2 / $total) * 100; ?>%"><?php echo $v2 ?> (<?php echo round(($v2 / $total) * 100,2); ?>%)</div><?php
 						}
-
-
 ?>
 					</td>
 
@@ -1111,9 +1127,7 @@
 					<?php if ((int)$v['item_amount'] < 1) { ?>
 						<a href="?action=delete_location&amp;id_locations=<?php echo $v['id'] ?>&view=locations"><?php echo t('Remove') ?></a>
 					<?php } ?>
-
 						<a href="?view=edit_location&amp;id_locations=<?php echo $v['id'] ?>"><?php echo t('Edit') ?></a>
-
 					</td>
 
 				</tr>
@@ -1132,7 +1146,6 @@
 			}
 ?>
 		<h2><?php echo t('Packlist') ?> <?php echo $packlist['title']; ?> <a href="?view=edit_packlist&amp;id_packlists=<?php echo $packlist['id']; ?>"><?php echo t('Edit') ?></a></div></h2>
-
 <?php
 		if ($criterias) {
 ?>
@@ -1462,6 +1475,57 @@
 <?php
 			break;
 
+		case 'users': # to list users
+			if (!is_logged_in()) {
+				print_login($username);
+				break;
+			}
+?>
+		<h2>
+			<?php echo t('Users') ?>
+			<div class="action"><a href="?view=edit_user"><?php echo t('New') ?></a></div>
+		</h2>
+		<table>
+			<thead>
+				<tr>
+					<th>#</th>
+					<th><?php echo t('Username') ?></th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+
+<?php			# walk users one by one
+				foreach ($users as $k => $v) {
+?>
+				<tr>
+					<td>
+						<?php echo $v['id'] ?>
+					</td>
+					<td>
+						<?php
+					if ($v['id_visum'] === "0" ) { ?>
+							<a href="?view=user&amp;id_users=<?php echo $v['id'] ?>"><?php echo $v['username']; ?></a>
+						<?php
+					} else {
+								echo $v['nickname'];
+					}
+						?>
+					</td>
+					<td class="manage">
+						<?php if ($v['id_visum'] === "0" ) { ?>
+							<a href="?action=delete_user&amp;id_users=<?php echo $v['id'] ?>&view=users" class="confirm"><?php echo t('Remove') ?></a>
+							<a href="?view=edit_user&amp;id_users=<?php echo $v['id'] ?>"><?php echo t('Edit') ?></a>
+						<?php } ?>
+					</td>
+				</tr>
+<?php
+				}
+?>
+			</tbody>
+		</table>
+<?php
+			break;
 	}
 ?>
 </body>

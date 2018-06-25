@@ -30,6 +30,7 @@
 	# 2018-05-05 00:02:00 - adding risk materials continued
 	# 2018-05-05 13:53:00 - adding risk materials continued
 	# 2018-06-24 17:57:00 - adding local login
+	# 2018-06-25 18:56:00 - minor html correction
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');
@@ -182,7 +183,7 @@
 			<label for="username"><?php echo t('Username') ?></label>
 			<input class="text" type="text" name="username" value="<?php echo $username?>"><br>
 			<label for="password"><?php echo t('Password') ?></label>
-			<input class="text" type="text" name="password" value=""><br>
+			<input class="text" type="password" name="password" value=""><br>
 			<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
 		</fieldset>
 	</form>

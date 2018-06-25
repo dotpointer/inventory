@@ -35,7 +35,7 @@
 
 		$('a.confirm').on('click', function(e) {
 
-			if (!window.confirm('Är du säker på att du vill fortsätta?')) {
+			if (!window.confirm(i.msg.confirm)) {
 				e.preventDefault();
 				return false;
 			}

@@ -27,6 +27,7 @@
 # 2018-04-11 13:39:00 - bug fix, correction for location query parameter that was used in actions
 # 2018-04-13 23:49:00 - adding packlist notes
 # 2018-06-24 17:58:00 - adding local login
+# 2018-06-25 18:58:00 - adding local user management and multi user support
 
 if (!isset($action)) die();
 
@@ -38,14 +39,23 @@ if (isset($editusers)) {
 			continue;
 		}
 
-
 		if (!validate_user($user['username'])) {
-			die('Username in editusers array is too short, too long or contain invalid characters.');
+			die(t('Username in editusers array is too short, too long or contain invalid characters.'));
 		}
+
 		if (!validate_pass($user['password'])) {
-			die('Password in editusers array is too short or does not contain letters or digits.');
+			die(t('Password in editusers array is too short or does not contain letters or digits.'));
 		}
-		$sql = 'SELECT * FROM users WHERE username="'.dbres($link, $user['username']).'" OR nickname="'.dbres($link, $user['username']).'"';
+
+		$sql = '
+			SELECT
+				*
+			FROM
+				users
+			WHERE
+				username="'.dbres($link, $user['username']).'" OR
+				nickname="'.dbres($link, $user['username']).'"
+			';
 		$result = db_query($link, $sql);
 
 		$iu = array(
@@ -58,17 +68,29 @@ if (isset($editusers)) {
 			$iu = dbpia($link, 	$iu);
 			# set password separately
 			$iu['password'] = 'ENCRYPT("'.dbres($link, $user['password']).'", "'.dbres($link, $password_salt).'")';
-			$sql = 'INSERT INTO users ('.implode(',', array_keys($iu)).') VALUES('.implode(',', $iu).')';
+			$sql = '
+				INSERT INTO users (
+					'.implode(',', array_keys($iu)).'
+				) VALUES(
+					'.implode(',', $iu).'
+				)';
 			db_query($link, $sql);
 		} else {
 			# make sure visum users are not tampered with
 			if ($result[0]['id_visum'] !== '0') {
-				die('A username in editusers array matches a Visum user. Cannot edit Visum users with the editusers array.');
+				die(t('A username in editusers array matches a Visum user. Cannot edit Visum users with the editusers array.'));
 			}
 			$iu['updated'] = date('Y-m-d H:i:s');
 			$iu = dbpua($link, $iu);
 			$iu['password'] = 'password=ENCRYPT("'.dbres($link, $user['password']).'", "'.dbres($link, $password_salt).'")';
-			$sql = 'UPDATE users SET '.implode($iu, ',').' WHERE id="'.dbres($link, $result[0]['id']).'"';
+			$sql = '
+				UPDATE
+					users
+				SET
+					'.implode($iu, ',').'
+				WHERE
+					id="'.dbres($link, $result[0]['id']).'"
+				';
 			db_query($link, $sql);
 		}
 		# echo $sql."\n";
@@ -78,7 +100,15 @@ if (isset($editusers)) {
 # check what action we have
 switch ($action) {
 	case 'images_to_files':
-		$r = db_query($link, 'SELECT * FROM items ORDER BY id');
+		die();
+		$r = db_query($link, '
+			SELECT
+				*
+			FROM
+				items
+			ORDER BY
+				id
+			');
 
 		foreach ($r as $k => $v) {
 			# is this item already completed, the go next
@@ -88,8 +118,13 @@ switch ($action) {
 			# no file found?
 			if (!file_exists($original_path)) {
 				# then update this item with no file
-				$sql = 'UPDATE items SET id_files=0 WHERE id="'.dbres($link, $v['id']).'"';
-				echo $sql."\n";
+				$sql = '
+					UPDATE
+						items
+					SET
+						id_files=0
+					WHERE
+						id="'.dbres($link, $v['id']).'"';
 				$r2 = db_query($link, $sql);
 				$iu['id_files'] = 0;
 			} else {
@@ -100,12 +135,22 @@ switch ($action) {
 					'mime' => mime_content_type($original_path)
 				);
 				$iu = dbpia($link, 	$iu);
-				$sql = 'INSERT INTO files ('.implode(',', array_keys($iu)).') VALUES('.implode(',', $iu).')';
-				echo $sql."\n";
+				$sql = '
+					INSERT INTO files (
+						'.implode(',', array_keys($iu)).'
+					) VALUES(
+						'.implode(',', $iu).'
+					)';
 				$r2 = db_query($link, $sql);
 				# update the db
-				$sql = 'UPDATE items SET id_files='.$v['id'].' WHERE id="'.dbres($link, $v['id']).'"';
-				echo $sql."\n";
+				$sql = '
+					UPDATE
+						items
+					SET
+						id_files='.$v['id'].'
+					WHERE
+						id="'.dbres($link, $v['id']).'"
+					';
 				$r2 = db_query($link, $sql);
 			}
 		}
@@ -124,7 +169,7 @@ switch ($action) {
 		if (!is_logged_in()) break;
 
 		# make sure required fields are filled in
-		if (strlen($title) < 3) die('Fields are not filled in.');
+		if (strlen($title) < 3) die(t('Fields are not filled in.'));
 
 		# make an array to insert or update
 		$iu = array(
@@ -133,13 +178,40 @@ switch ($action) {
 
 		# is this an existing item?
 		if ($id_categories) {
+			# make sure it belongs to this user
+			$sql = '
+				SELECT
+					id
+				FROM
+					categories
+				WHERE
+					id="'.dbres($link, $id_categories).'" AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				';
+			if (!count(db_query($link, $sql))) {
+				die(t('Could not find the category, maybe this is not yours.'));
+			}
+
 			$iu = dbpua($link, $iu);
-			$sql = 'UPDATE categories SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_categories).'"';
+			$sql = '
+				UPDATE
+					categories
+				SET
+					'.implode($iu, ',').'
+				WHERE
+					id="'.dbres($link, $id_categories).'"
+				';
 			db_query($link, $sql);
 		# or is it a new item?
 		} else {
 			$iu = dbpia($link, $iu);
-			$sql = 'INSERT INTO categories ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
+			$iu['id_users'] = get_logged_in_user('id');
+			$sql = '
+				INSERT INTO categories (
+					'.implode(array_keys($iu), ',').'
+				) VALUES(
+					'.implode($iu, ',').'
+				)';
 			db_query($link, $sql);
 			$id_categories = db_insert_id($link);
 		}
@@ -148,10 +220,9 @@ switch ($action) {
 
 	case 'insert_update_criteria': # to insert or update a criteria
 		if (!is_logged_in()) break;
-		# if (!$id_criterias) die('id_criterias is missing.');
 
 		# make sure required fields are filled in
-		if (strlen($title) < 3) die('Fields are not filled in.');
+		if (strlen($title) < 3) die(t('Fields are not filled in.'));
 
 		# make an array to insert or update
 		$iu = array(
@@ -162,16 +233,43 @@ switch ($action) {
 
 		# is this an existing item?
 		if ($id_criterias) {
+			# make sure it belongs to this user
+			$sql = '
+				SELECT
+					id
+				FROM
+					criterias
+				WHERE
+					id="'.dbres($link, $id_criterias).'" AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				';
+			if (!count(db_query($link, $sql))) {
+				die(t('Could not find the criteria, maybe this is not yours.'));
+			}
+
 			$iu['updated'] = date('Y-m-d H:i:s');
 			$iu = dbpua($link, $iu);
-			$sql = 'UPDATE criterias SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_criterias).'"';
+			$sql = '
+				UPDATE
+					criterias
+				SET
+					'.implode($iu, ',').'
+				WHERE
+					id="'.dbres($link, $id_criterias).'"
+				';
 			db_query($link, $sql);
 		# or is it a new item?
 		} else {
 			$iu['created'] = date('Y-m-d H:i:s');
 			$iu['updated'] = date('Y-m-d H:i:s');
+			$iu['id_users'] = get_logged_in_user('id');
 			$iu = dbpia($link, $iu);
-			$sql = 'INSERT INTO criterias ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
+			$sql = '
+				INSERT INTO criterias (
+					'.implode(array_keys($iu), ',').'
+				) VALUES(
+					'.implode($iu, ',').'
+				)';
 			db_query($link, $sql);
 			$id_criterias = db_insert_id($link);
 		}
@@ -180,26 +278,52 @@ switch ($action) {
 
 	case 'insert_update_location': # to insert or update a location
 		if (!is_logged_in()) break;
-		# if (!$id_locations) die('id_locations is missing.');
 
 		# make sure required fields are filled in
-		if (strlen($title) < 3) die('Fields are not filled in.');
+		if (strlen($title) < 3) die(t('Fields are not filled in.'));
 
 		# make an array to insert or update
 		$iu = array(
-			'title' => $title,
-			'contents' => $contents
+			'contents' => $contents,
+			'title' => $title
 		);
 
 		# is this an existing item?
 		if ($id_locations) {
+			# make sure it belongs to this user
+			$sql = '
+				SELECT
+					id
+				FROM
+					locations
+				WHERE
+					id="'.dbres($link, $id_locations).'" AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				';
+			if (!count(db_query($link, $sql))) {
+				die(t('Could not find the location, maybe this is not yours.'));
+			}
+
 			$iu = dbpua($link, $iu);
-			$sql = 'UPDATE locations SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_locations).'"';
+			$sql = '
+				UPDATE
+					locations
+				SET
+					'.implode($iu, ',').'
+				WHERE
+					id="'.dbres($link, $id_locations).'"
+				';
 			db_query($link, $sql);
 		# or is it a new item?
 		} else {
+			$iu = get_logged_in_user('id');
 			$iu = dbpia($link, $iu);
-			$sql = 'INSERT INTO locations ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
+			$sql = '
+				INSERT INTO locations (
+					'.implode(array_keys($iu), ',').'
+				) VALUES(
+					'.implode($iu, ',').'
+				)';
 			db_query($link, $sql);
 			$id_locations = db_insert_id($link);
 		}
@@ -212,7 +336,7 @@ switch ($action) {
 			!isset($_FILES['file']['error']) ||
 			is_array($_FILES['file']['error'])
 		) {
-			die('Invalid parameters.');
+			die(t('Invalid parameters.'));
 		}
 
 		# check error value
@@ -224,7 +348,7 @@ switch ($action) {
 
 				# filesize check
 				if ($_FILES['file']['size'] > 100000000) {
-					die('Exceeded filesize limit.');
+					die(t('Exceeded filesize limit.'));
 				}
 
 				# mime check - do not trust $_FILES mime value
@@ -239,7 +363,7 @@ switch ($action) {
 					),
 					true
 				)) {
-					die('Invalid file format.');
+					die(t('Invalid file format.'));
 				}
 
 				# missing file dir?
@@ -247,7 +371,7 @@ switch ($action) {
 					!is_dir(FILE_DIR)
 					|| trim(FILE_DIR) === '/'
 					|| substr(FILE_DIR, -1,1) !== '/'
-				) die('Fatal, file directory does not exist: '.FILE_DIR);
+				) die(t('Fatal, file directory does not exist: '.FILE_DIR));
 
 				# is there no files id supplied?
 				if (!$id_files) {
@@ -257,13 +381,25 @@ switch ($action) {
 						'mime' => mime_content_type($_FILES['file']['tmp_name'])
 					);
 					$iu = dbpia($link, $iu);
-					$sql = 'INSERT INTO files ('.implode(',', array_keys($iu)).') VALUES('.implode(',', $iu).')';
+					$sql = '
+						INSERT INTO files (
+							'.implode(',', array_keys($iu)).'
+						) VALUES(
+							'.implode(',', $iu).'
+						)';
 					$r_insert_files = db_query($link, $sql);
 					$id_files = db_insert_id($link);
 				}
 
 				# update the file location
-				$sql = 'UPDATE locations SET id_files="'.dbres($link, $id_files).'" WHERE id="'.dbres($link, $id_locations).'"';
+				$sql = '
+					UPDATE
+						locations
+					SET
+						id_files="'.dbres($link, $id_files).'"
+					WHERE
+						id="'.dbres($link, $id_locations).'"
+					';
 				$r_update_locations = db_query($link, $sql);
 
 				# set the target file path
@@ -271,18 +407,14 @@ switch ($action) {
 
 				# make sure it does not exist
 				if (file_exists($targetfile)) {
-					# die('I want to delete: '.$targetfile);
-					if (!unlink($targetfile)) die('Failed deleting '.$targetfile);
+					if (!unlink($targetfile)) die(t('Failed deleting').' '.$targetfile);
 				}
 
-				# You should name it uniquely.
-				# DO NOT USE $_FILES['file']['name'] WITHOUT ANY VALIDATION !!
-				# On this example, obtain safe unique name from its binary data.
 				if (!move_uploaded_file(
 					$_FILES['file']['tmp_name'],
 					$targetfile
 				)) {
-					die('Failed to move uploaded file.');
+					die(t('Failed to move uploaded file.'));
 				}
 
 				# missing thumbnail dir?
@@ -290,7 +422,7 @@ switch ($action) {
 					!is_dir(THUMBNAIL_DIR)
 					|| trim(THUMBNAIL_DIR) === '/'
 					|| substr(THUMBNAIL_DIR, -1,1) !== '/'
-				) die('Fatal, thumbnail directory does not exist: '.THUMBNAIL_DIR);
+				) die(t('Fatal, thumbnail directory does not exist').': '.THUMBNAIL_DIR);
 
 				# make a thumbnail of it, if it is not already there
 
@@ -299,8 +431,7 @@ switch ($action) {
 
 				# make sure it does not exist
 				if (file_exists($thumbfile)) {
-					# die('I want to delete: '.$thumbfile);
-					if (!unlink($thumbfile)) die('Failed deleting '.$thumbfile);
+					if (!unlink($thumbfile)) die(t('Failed deleting').' '.$thumbfile);
 				}
 
 				$s = trim(exec('ps ax|grep convert|grep -v grep'));
@@ -314,7 +445,7 @@ switch ($action) {
 
 				$return2 = exec(MAGICK_PATH.'convert '.escapeshellarg($targetfile).' -quality 75 -auto-orient -strip -sample 320x240 '.escapeshellarg($thumbfile), $output, $return);
 
-				if (!file_exists($thumbfile)) die('Failed creating thumbnail: '.$thumbfile.'. Command output was: '.implode("\n", $output).$return2.$return);
+				if (!file_exists($thumbfile)) die(t('Failed creating thumbnail').': '.$thumbfile.'. Command output was: '.implode("\n", $output).$return2.$return);
 				# upload complete
 
 				break;
@@ -322,11 +453,11 @@ switch ($action) {
 				# no file uploaded, that is ok
 				break;
 			case UPLOAD_ERR_INI_SIZE:
-				die('Exceeded filesize limit in ini setting.');
+				die(t('Exceeded filesize limit in ini setting.'));
 			case UPLOAD_ERR_FORM_SIZE:
-				die('Exceeded filesize limit in form.');
+				die(t('Exceeded filesize limit in form.'));
 			default:
-				die('Unknown errors.');
+				die(t('Unknown errors.'));
 		}
 
 		break;
@@ -336,7 +467,13 @@ switch ($action) {
 		die();
 
 		# get all items
-		$items = db_query($link, 'SELECT id, updated FROM items');
+		$items = db_query($link, '
+			SELECT
+				id,
+				updated
+			FROM
+				items
+		');
 
 		# walk items
 		foreach ($items as $item) {
@@ -366,31 +503,62 @@ switch ($action) {
 			$locations = json_encode($locations);
 
 			# get last location history title
-			$sql = 'SELECT title FROM location_history WHERE id_items="'.dbres($link, $id_items).'" ORDER BY id DESC LIMIT 1';
+			$sql = '
+				SELECT
+					title
+				FROM
+					location_history
+				WHERE
+					id_items="'.dbres($link, $id_items).'"
+				ORDER BY
+					id DESC
+				LIMIT 1';
 			$location_history = db_query($link, $sql);
 			if (!count($location_history) || $location_history[0]['title'] !== $locations) {
-					# then insert the relation
-					$sql = 'INSERT INTO location_history (id_items, title, created) VALUES('.(int)$id_items.',"'.dbres($link, $locations).'", "'.dbres($link, $item['updated']).'")';
-					$r = db_query($link, $sql);
+				# then insert the relation
+				$sql = '
+					INSERT INTO location_history (
+						id_items,
+						title,
+						created
+					) VALUES(
+						'.(int)$id_items.',
+						"'.dbres($link, $locations).'",
+						"'.dbres($link, $item['updated']).'"
+					)';
+				$r = db_query($link, $sql);
 			}
 		}
 
 		die();
 
-		break;
 	case 'delete_location':
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_locations)) die('Missing id_locations parameter.');
+		if (!is_numeric($id_locations)) die(t('Missing').' id_locations.');
 
 		# check connected locations
-		$sql = 'SELECT * FROM relations_items_locations WHERE id_locations="'.dbres($link, $id_locations).'"';
+		$sql = '
+			SELECT
+				*
+			FROM
+				relations_items_locations
+			WHERE
+				id_locations="'.dbres($link, $id_locations).'"
+			';
 		$r = db_query($link, $sql);
 
-		if ($r) die('Location with id #'.(int)$id_locations.' has relations, remove them first.');
+		if ($r) {
+			die(t('Location with id #').(int)$id_locations.' '.t('has relations, remove them first.'));
+		}
 
-		$sql = 'DELETE FROM locations WHERE id="'.dbres($link, $id_locations).'"';
+		$sql = '
+			DELETE FROM
+				locations
+			WHERE
+				id="'.dbres($link, $id_locations).'"
+			';
 		# die($sql);
 		# unset($sql);
 		db_query($link, $sql);
@@ -401,7 +569,14 @@ switch ($action) {
 		# is new category field filled in?
 		if (strlen($category)) {
 			# check if it already is posted
-			$sql = 'SELECT * FROM categories WHERE LOWER(title)=LOWER("'.dbres($link, $category).'")';
+			$sql = '
+				SELECT
+					*
+				FROM
+					categories
+				WHERE
+					LOWER(title)=LOWER("'.dbres($link, $category).'")
+				';
 			$r = db_query($link, $sql);
 			# did we find any matching categories?
 			if (count($r)) {
@@ -410,7 +585,12 @@ switch ($action) {
 				# remove the category
 				$category = false;
 			} else {
-				$sql = 'INSERT INTO categories (title) VALUES("'.dbres($link, $category).'")';
+				$sql = '
+					INSERT INTO categories (
+						title
+					) VALUES(
+						"'.dbres($link, $category).'"
+					)';
 				db_query($link, $sql);		# try to get the locations of the item
 		$locations = db_query($link, '
 			SELECT
@@ -432,11 +612,29 @@ switch ($action) {
 		$locations = implode(', ', $locations);
 
 		# get last location history title
-		$sql = 'SELECT title FROM location_history WHERE id_items="'.dbres($link, $id_items).'" ORDER BY id DESC LIMIT 1';
+		$sql = '
+			SELECT
+				title
+			FROM
+				location_history
+			WHERE
+				id_items="'.dbres($link, $id_items).'"
+			ORDER BY
+				id DESC
+			LIMIT 1';
 		$location_history = db_query($link, $sql);
 		if (!count($location_history) || $location_history[0]['title'] !== $locations) {
 				# then insert the relation
-				$sql = 'INSERT INTO location_history (id_items, title, created) VALUES('.(int)$id_items.',"'.dbres($link, $locations).'", "'.date('Y-m-d H:i:s').'")';
+				$sql = '
+					INSERT INTO location_history (
+						id_items,
+						title,
+						created
+					) VALUES(
+						'.(int)$id_items.',
+						"'.dbres($link, $locations).'",
+						"'.date('Y-m-d H:i:s').'"
+					)';
 				$r = db_query($link, $sql);
 		}
 				$id_categories = db_insert_id($link);
@@ -445,7 +643,9 @@ switch ($action) {
 		}
 
 		# make sure required fields are filled in
-		if (strlen($title) < 3) die('Fields are not filled in.');
+		if (strlen($title) < 3) {
+			die(t('Fields are not filled in.'));
+		}
 
 		# make an array to insert or update
 		$iu = array(
@@ -475,13 +675,35 @@ switch ($action) {
 
 		# is this an existing item?
 		if ($id_items) {
+			# make sure it belongs to this user
+			$sql = '
+				SELECT
+					id
+				FROM
+					items
+				WHERE
+					id="'.dbres($link, $id_items).'" AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				';
+			if (!count(db_query($link, $sql))) {
+				die(t('Could not find the item, maybe this is not yours.'));
+			}
+
 			$iu = dbpua($link, $iu);
-			$sql = 'UPDATE items SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_items).'"';
+			$sql = '
+				UPDATE
+					items
+				SET
+					'.implode($iu, ',').'
+				WHERE
+					id="'.dbres($link, $id_items).'"
+				';
 			db_query($link, $sql);
 
 		# or is it a new item?
 		} else {
 			$iu['created'] = date('Y-m-d H:i:s');
+			$iu['id_users'] = get_logged_in_user('id');
 			$iu = dbpia($link, $iu);
 			$sql = 'INSERT INTO items ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
 			db_query($link, $sql);
@@ -499,7 +721,15 @@ switch ($action) {
 			$v = $locations[$k];
 			if (!strlen($v)) continue;
 			# get all matching locations based on title
-			$sql = 'SELECT id,title FROM locations WHERE title="'.dbres($link, $v).'"';
+			$sql = '
+				SELECT
+					id,
+					title
+				FROM
+					locations
+				WHERE
+					title="'.dbres($link, $v).'"
+				';
 			$loc = db_query($link, $sql);
 			# was a location found?
 			if (count($loc)) {
@@ -508,7 +738,14 @@ switch ($action) {
 			# was no location found?
 			} else {
 				# then insert the location
-				$sql = 'INSERT INTO locations (title,contents) VALUES("' . dbres($link, $v) .'", "")';
+				$sql = '
+					INSERT INTO locations (
+						title,
+						contents
+					) VALUES(
+						"' . dbres($link, $v) .'",
+						""
+					)';
 				$loc = db_query($link, $sql);
 				$loc = array(
 					'id' => db_insert_id($link),
@@ -518,12 +755,27 @@ switch ($action) {
 
 
 			# get all matching relations based on id of location and item
-			$sql = 'SELECT * FROM relations_items_locations WHERE id_locations="'.dbres($link, $loc['id']).'" AND id_items="'.dbres($link, $id_items).'"';
+			$sql = '
+				SELECT
+					*
+				FROM
+					relations_items_locations
+				WHERE
+					id_locations="'.dbres($link, $loc['id']).'" AND
+					id_items="'.dbres($link, $id_items).'"
+				';
 			$r = db_query($link, $sql);
 			# no relation match?
 			if (!count($r)) {
 				# then insert the relation
-				$sql = 'INSERT INTO relations_items_locations (id_items, id_locations) VALUES('.(int)$id_items.','.(int)$loc['id'].')';
+				$sql = '
+					INSERT INTO relations_items_locations (
+						id_items,
+						id_locations
+					) VALUES(
+						'.(int)$id_items.',
+						'.(int)$loc['id'].'
+					)';
 				$r = db_query($link, $sql);
 				$valid_id_relations_items_locations[] = db_insert_id($link);
 			} else {
@@ -533,7 +785,13 @@ switch ($action) {
 
 		# delete all invalid ones
 		if (count($valid_id_relations_items_locations)) {
-			$sql = 'DELETE FROM relations_items_locations WHERE id_items="'.(int)$id_items.'" AND id NOT IN ('.implode(',', $valid_id_relations_items_locations).')';
+			$sql = '
+				DELETE FROM
+					relations_items_locations
+				WHERE
+					id_items="'.(int)$id_items.'" AND
+					id NOT IN ('.implode(',', $valid_id_relations_items_locations).')
+				';
 			db_query($link, $sql);
 		}
 
@@ -558,12 +816,31 @@ switch ($action) {
 		$locations = json_encode($locations);
 
 		# get last location history title
-		$sql = 'SELECT title FROM location_history WHERE id_items="'.dbres($link, $id_items).'" ORDER BY id DESC LIMIT 1';
+		$sql = '
+			SELECT
+				title
+			FROM
+				location_history
+			WHERE
+				id_items="'.dbres($link, $id_items).'"
+			ORDER BY
+				id DESC
+			LIMIT 1
+			';
 		$location_history = db_query($link, $sql);
 		if (!count($location_history) || $location_history[0]['title'] !== $locations) {
-				# then insert the relation
-				$sql = 'INSERT INTO location_history (id_items, title, created) VALUES('.(int)$id_items.',"'.dbres($link, $locations).'", "'.date('Y-m-d H:i:s').'")';
-				$r = db_query($link, $sql);
+			# then insert the relation
+			$sql = '
+				INSERT INTO location_history (
+					id_items,
+					title,
+					created
+				) VALUES(
+					'.(int)$id_items.',
+					"'.dbres($link, $locations).'",
+					"'.date('Y-m-d H:i:s').'"
+				)';
+			$r = db_query($link, $sql);
 		}
 
 		# --- end of location
@@ -574,7 +851,7 @@ switch ($action) {
 			!isset($_FILES['file']['error']) ||
 			is_array($_FILES['file']['error'])
 		) {
-			die('Invalid parameters.');
+			die(t('Invalid parameters.'));
 		}
 
 		# check error value
@@ -586,7 +863,7 @@ switch ($action) {
 
 				# filesize check
 				if ($_FILES['file']['size'] > 100000000) {
-					die('Exceeded filesize limit.');
+					die(t('Exceeded filesize limit.'));
 				}
 
 				# mime check - do not trust $_FILES mime value
@@ -601,7 +878,7 @@ switch ($action) {
 					),
 					true
 				)) {
-					die('Invalid file format.');
+					die(t('Invalid file format.'));
 				}
 
 				# missing file dir?
@@ -609,8 +886,7 @@ switch ($action) {
 					!is_dir(FILE_DIR)
 					|| trim(FILE_DIR) === '/'
 					|| substr(FILE_DIR, -1,1) !== '/'
-				) die('Fatal, file directory does not exist: '.FILE_DIR);
-
+				) die(t('Fatal, file directory does not exist').': '.FILE_DIR);
 
 				# is there no files id supplied?
 				if (!$id_files) {
@@ -620,13 +896,25 @@ switch ($action) {
 						'mime' => mime_content_type($_FILES['file']['tmp_name'])
 					);
 					$iu = dbpia($link, $iu);
-					$sql = 'INSERT INTO files ('.implode(',', array_keys($iu)).') VALUES('.implode(',', $iu).')';
+					$sql = '
+						INSERT INTO files (
+							'.implode(',', array_keys($iu)).'
+						) VALUES(
+							'.implode(',', $iu).'
+						)';
 					$r_insert_files = db_query($link, $sql);
 					$id_files = db_insert_id($link);
 				}
 
 				# update the file location
-				$sql = 'UPDATE items SET id_files="'.dbres($link, $id_files).'" WHERE id="'.dbres($link, $id_items).'"';
+				$sql = '
+					UPDATE
+						items
+					SET
+						id_files="'.dbres($link, $id_files).'"
+					WHERE
+						id="'.dbres($link, $id_items).'"
+					';
 				$r_update_items = db_query($link, $sql);
 
 				# set the target file path
@@ -635,18 +923,16 @@ switch ($action) {
 
 				# make sure it does not exist
 				if (file_exists($targetfile)) {
-					# die('I want to delete: '.$targetfile);
-					if (!unlink($targetfile)) die('Failed deleting '.$targetfile);
+					if (!unlink($targetfile)) {
+						die(t('Failed deleting').' '.$targetfile);
+					}
 				}
 
-				# You should name it uniquely.
-				# DO NOT USE $_FILES['file']['name'] WITHOUT ANY VALIDATION !!
-				# On this example, obtain safe unique name from its binary data.
 				if (!move_uploaded_file(
 					$_FILES['file']['tmp_name'],
 					$targetfile
 				)) {
-					die('Failed to move uploaded file.');
+					die(t('Failed to move uploaded file.'));
 				}
 
 				# missing thumbnail dir?
@@ -654,7 +940,7 @@ switch ($action) {
 					!is_dir(THUMBNAIL_DIR)
 					|| trim(THUMBNAIL_DIR) === '/'
 					|| substr(THUMBNAIL_DIR, -1,1) !== '/'
-				) die('Fatal, thumbnail directory does not exist: '.THUMBNAIL_DIR);
+				) die(t('Fatal, thumbnail directory does not exist').': '.THUMBNAIL_DIR);
 
 				# make a thumbnail of it, if it is not already there
 
@@ -663,8 +949,7 @@ switch ($action) {
 
 				# make sure it does not exist
 				if (file_exists($thumbfile)) {
-					# die('I want to delete: '.$thumbfile);
-					if (!unlink($thumbfile)) die('Failed deleting '.$thumbfile);
+					if (!unlink($thumbfile)) die(t('Failed deleting').' '.$thumbfile);
 				}
 
 				$s = trim(exec('ps ax|grep convert|grep -v grep'));
@@ -678,7 +963,7 @@ switch ($action) {
 
 				$return2 = exec(MAGICK_PATH.'convert '.escapeshellarg($targetfile).' -quality 75 -auto-orient -strip -sample 320x240 '.escapeshellarg($thumbfile), $output, $return);
 
-				if (!file_exists($thumbfile)) die('Failed creating thumbnail: '.$thumbfile.'. Command output was: '.implode("\n", $output).$return2.$return);
+				if (!file_exists($thumbfile)) die(t('Failed creating thumbnail').': '.$thumbfile.'. Command output was: '.implode("\n", $output).$return2.$return);
 				# upload complete
 
 				break;
@@ -686,11 +971,11 @@ switch ($action) {
 				# no file uploaded, that is ok
 				break;
 			case UPLOAD_ERR_INI_SIZE:
-				die('Exceeded filesize limit in ini setting.');
+				die(t('Exceeded filesize limit in ini setting.'));
 			case UPLOAD_ERR_FORM_SIZE:
-				die('Exceeded filesize limit in form.');
+				die(t('Exceeded filesize limit in form.'));
 			default:
-				die('Unknown errors.');
+				die(t('Unknown errors.'));
 		}
 
 		switch ($view) {
@@ -718,10 +1003,11 @@ switch ($action) {
 	case 'insert_update_packlist': # to insert or update a packlist
 
 		if (!is_logged_in()) break;
-		# if (!$id_packlists) die('id_packlists is missing.');
 
 		# make sure required fields are filled in
-		if (strlen($title) < 3) die('Fields are not filled in.');
+		if (strlen($title) < 3) {
+			die(t('Fields are not filled in.'));
+		}
 
 		# make an array to insert or update
 		$iu = array(
@@ -732,16 +1018,43 @@ switch ($action) {
 
 		# is this an existing item?
 		if ($id_packlists) {
+			# make sure it belongs to this user
+			$sql = '
+				SELECT
+					id
+				FROM
+					packlists
+				WHERE
+					id="'.dbres($link, $id_packlists).'" AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				';
+			if (!count(db_query($link, $sql))) {
+				die(t('Could not find the packlist, maybe this is not yours.'));
+			}
+
 			$iu['updated'] = date('Y-m-d H:i:s');
 			$iu = dbpua($link, $iu);
-			$sql = 'UPDATE packlists SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_packlists).'"';
+			$sql = '
+				UPDATE
+					packlists
+				SET
+					'.implode($iu, ',').'
+				WHERE
+					id="'.dbres($link, $id_packlists).'"
+				';
 			db_query($link, $sql);
 		# or is it a new item?
 		} else {
 			$iu['created'] = date('Y-m-d H:i:s');
+			$iu['id_users'] = get_logged_in_user('id');
 			$iu['updated'] = date('Y-m-d H:i:s');
 			$iu = dbpia($link, $iu);
-			$sql = 'INSERT INTO packlists ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
+			$sql = '
+				INSERT INTO packlists (
+					'.implode(array_keys($iu), ',').'
+				) VALUES(
+					'.implode($iu, ',').'
+				)';
 			db_query($link, $sql);
 			$id_packlists = db_insert_id($link);
 		}
@@ -790,7 +1103,12 @@ switch ($action) {
 					'created' => date('Y-m-d H:i:s')
 				);
 				$iu = dbpia($link, $iu);
-				$sql = 'INSERT INTO relations_criterias_packlists ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
+				$sql = '
+					INSERT INTO relations_criterias_packlists (
+						'.implode(array_keys($iu), ',').'
+					) VALUES(
+						'.implode($iu, ',').'
+					)';
 				db_query($link, $sql);
 			}
 		}
@@ -801,11 +1119,20 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_items)) die('Missing id_items parameter.');
-		if (!is_numeric($id_criterias)) die('Missing id_criterias parameter.');
+		if (!is_numeric($id_items)) die(t('Missing').' id_items.');
+		if (!is_numeric($id_criterias)) die(t('Missing').' id_criterias.');
 
 		# check that relation is not there before
-		$sql = 'SELECT * FROM relations_criterias_items WHERE id_criterias="'.dbres($link, $id_criterias).'" AND id_items="'.dbres($link, $id_items).'"';
+		$sql = '
+			SELECT
+				*
+			FROM
+				relations_criterias_items
+			WHERE
+				id_criterias="'.dbres($link, $id_criterias).'" AND
+				id_items="'.dbres($link, $id_items).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
 		$r = db_query($link, $sql);
 		if (count($r)) {
 			echo json_encode(array(
@@ -815,7 +1142,16 @@ switch ($action) {
 		}
 
 		# delete criteria relations
-		$sql = 'INSERT INTO  relations_criterias_items (id_criterias, id_items) VALUES("'.dbres($link, $id_criterias).'","'.dbres($link, $id_items).'")';
+		$sql = '
+			INSERT INTO relations_criterias_items (
+				id_criterias,
+				id_items,
+				id_users
+			) VALUES(
+				"'.dbres($link, $id_criterias).'",
+				"'.dbres($link, $id_items).',
+				"'.dbres($link, get_logged_in_user('id')).'"
+			)';
 		$r = db_query($link, $sql);
 
 		echo json_encode(array(
@@ -827,11 +1163,20 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_items)) die('Missing id_items parameter.');
-		if (!is_numeric($id_packlists)) die('Missing id_packlists parameter.');
+		if (!is_numeric($id_items)) die(t('Missing').' id_items.');
+		if (!is_numeric($id_packlists)) die(t('Missing').' id_packlists.');
 
 		# check that relation is not there before
-		$sql = 'SELECT * FROM relations_packlists_items WHERE id_packlists="'.dbres($link, $id_packlists).'" AND id_items="'.dbres($link, $id_items).'"';
+		$sql = '
+			SELECT
+				*
+			FROM
+				relations_packlists_items
+			WHERE
+				id_packlists="'.dbres($link, $id_packlists).'" AND
+				id_items="'.dbres($link, $id_items).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
 		$r = db_query($link, $sql);
 		if (count($r)) {
 			echo json_encode(array(
@@ -841,7 +1186,16 @@ switch ($action) {
 		}
 
 		# delete packlist relations
-		$sql = 'INSERT INTO  relations_packlists_items (id_packlists, id_items) VALUES("'.dbres($link, $id_packlists).'","'.dbres($link, $id_items).'")';
+		$sql = '
+			INSERT INTO
+				relations_packlists_items
+			(
+				id_packlists,
+				id_items
+			) VALUES(
+				"'.dbres($link, $id_packlists).'",
+				"'.dbres($link, $id_items).'"
+			)';
 		$r = db_query($link, $sql);
 
 		echo json_encode(array(
@@ -853,12 +1207,33 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlists)) die('Missing id_packlists.');
+		if (!is_numeric($id_packlists)) die(t('Missing').' id_packlists.');
+
+		# make sure it belongs to this user
+		$sql = '
+			SELECT
+				id
+			FROM
+				packlists
+			WHERE
+				id="'.dbres($link, $id_packlists).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the packlist, maybe this is not yours.'));
+		}
 
 		$iu = dbpua($link, array(
 			'notes' => $notes
 		));
-		$sql = 'UPDATE packlists SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_packlists).'"';
+		$sql = '
+			UPDATE
+				packlists
+			SET
+				'.implode($iu, ',').'
+			WHERE
+				id="'.dbres($link, $id_packlists).'"
+			';
 		db_query($link, $sql);
 
 		echo json_encode(array(
@@ -870,12 +1245,33 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_relations_packlists_items)) die('Missing id_relations_packlists_items.');
+		if (!is_numeric($id_relations_packlists_items)) die(t('Missing').' id_relations_packlists_items.');
+
+		# make sure it belongs to this user
+		$sql = '
+			SELECT
+				id
+			FROM
+				relations_packlists_items
+			WHERE
+				id="'.dbres($link, $id_relations_packlists_items).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the relation, maybe this is not yours.'));
+		}
 
 		$iu = dbpua($link, array(
 			'comment' => $comment
 		));
-		$sql = 'UPDATE relations_packlists_items SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_relations_packlists_items).'"';
+		$sql = '
+			UPDATE
+				relations_packlists_items
+			SET
+				'.implode($iu, ',').'
+			WHERE
+				id="'.dbres($link, $id_relations_packlists_items).'"
+			';
 		db_query($link, $sql);
 
 		break;
@@ -885,7 +1281,7 @@ switch ($action) {
 		if (!is_logged_in()) break;
 
 		# make sure required fields are filled in
-		if (strlen($username) < 3) die('Fields are not filled in.');
+		if (strlen($username) < 3) die(t('Fields are not filled in.'));
 
 		# make an array to insert or update
 		$iu = array(
@@ -893,15 +1289,25 @@ switch ($action) {
 		);
 
 		# make sure username does not already exist
-
-		$sql = 'SELECT * FROM users WHERE username="'.dbres($link, $username).'"';
+		$sql = '
+			SELECT
+				*
+			FROM
+				users
+			WHERE
+				username="'.dbres($link, $username).'"
+			';
 		if ($id_users) {
 			$sql .= ' AND NOT id="'.dbres($link, $id_users).'"';
 		}
 		$result = db_query($link, $sql);
 
 		if (count($result)) {
-			die('A user with the selected username already exists.');
+			die(t('A user with the selected username already exists.'));
+		}
+
+		if (!validate_user($username)) {
+			die(t('Username is too short, too long or contain invalid characters.'));
 		}
 
 		# is this an existing item?
@@ -909,28 +1315,40 @@ switch ($action) {
 
 			# has password been sent in
 			if ($password) {
-				if (strlen($password) < 3) {
-					die('Password is too short.');
+				if ($result[0]['id_visum'] !== '0') {
+					die(t('A username in editusers array matches a Visum user. Cannot edit Visum users with the editusers array.'));
+				}
+
+				if (!validate_pass($password)) {
+					die(t('Password is too short or does not contain letters or digits.'));
 				}
 
 				if ($password != $password_retype) {
-					die('Password does not match password retype.');
+					die(t('Password does not match password retype.'));
 				}
+
 				$iu['password'] = $password;
 			}
 
 			$iu['updated'] = date('Y-m-d H:i:s');
 			$iu = dbpua($link, $iu);
-			$sql = 'UPDATE users SET '.implode($iu, ',').' WHERE id="'.dbres($link, $id_users).'"';
+			$sql = '
+				UPDATE
+					users
+				SET
+					'.implode($iu, ',').'
+				WHERE
+					id="'.dbres($link, $id_users).'"
+				';
 			db_query($link, $sql);
 		# or is it a new item?
 		} else {
-			if (strlen($password) < 3) {
-				die('Password is too short.');
+			if (!validate_pass($password)) {
+				die(t('Password is too short or does not contain letters or digits.'));
 			}
 
 			if ($password != $password_retype) {
-				die('Password does not match password retype.');
+				die(t('Password does not match password retype.'));
 			}
 
 			$iu['id_visum'] = 0; # visum disabled for this user
@@ -938,7 +1356,12 @@ switch ($action) {
 			$iu['created'] = date('Y-m-d H:i:s');
 			$iu['updated'] = date('Y-m-d H:i:s');
 			$iu = dbpia($link, $iu);
-			$sql = 'INSERT INTO users ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
+			$sql = '
+				INSERT INTO users (
+					'.implode(array_keys($iu), ',').'
+				) VALUES(
+					'.implode($iu, ',').'
+				)';
 			db_query($link, $sql);
 			$id_users = db_insert_id($link);
 		}
@@ -948,17 +1371,46 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_criterias)) die('Missing id_criterias parameter.');
+		if (!is_numeric($id_criterias)) die(t('Missing').' id_criterias.');
+
+		# make sure it belongs to this user
+		$sql = '
+			SELECT
+				id
+			FROM
+				criterias
+			WHERE
+				id="'.dbres($link, $id_criterias).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the criteria, maybe this is not yours.'));
+		}
 
 		# delete criteria relations
-		$sql = 'DELETE FROM relations_criterias_items WHERE id_criterias="'.dbres($link, $id_criterias).'"';
+		$sql = '
+			DELETE FROM
+				relations_criterias_items
+			WHERE
+				id_criterias="'.dbres($link, $id_criterias).'"
+			';
 		$r = db_query($link, $sql);
 
-		$sql = 'DELETE FROM relations_criterias_packlists WHERE id_criterias="'.dbres($link, $id_criterias).'"';
+		$sql = '
+			DELETE FROM
+				relations_criterias_packlists
+			WHERE
+				id_criterias="'.dbres($link, $id_criterias).'"
+			';
 		$r = db_query($link, $sql);
 
 		# delete criteria
-		$sql = 'DELETE FROM criterias WHERE id="'.dbres($link, $id_criterias).'"';
+		$sql = '
+			DELETE FROM
+				criterias
+			WHERE
+				id="'.dbres($link, $id_criterias).'"
+			';
 		db_query($link, $sql);
 		break;
 
@@ -966,14 +1418,38 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlists)) die('Missing id_packlists parameter.');
+		if (!is_numeric($id_packlists)) die(t('Missing').' id_packlists.');
+
+		# make sure it belongs to this user
+		$sql = '
+			SELECT
+				id
+			FROM
+				packlists
+			WHERE
+				id="'.dbres($link, $id_packlists).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the packlist, maybe this is not yours.'));
+		}
 
 		# delete packlist relations
-		$sql = 'DELETE FROM relations_packlists_items WHERE id_packlists="'.dbres($link, $id_packlists).'"';
+		$sql = '
+			DELETE FROM
+				relations_packlists_items
+			WHERE
+				id_packlists="'.dbres($link, $id_packlists).'"
+			';
 		$r = db_query($link, $sql);
 
 		# delete packlist
-		$sql = 'DELETE FROM packlists WHERE id="'.dbres($link, $id_packlists).'"';
+		$sql = '
+			DELETE FROM
+				packlists
+			WHERE
+				id="'.dbres($link, $id_packlists).'"
+			';
 		db_query($link, $sql);
 		break;
 
@@ -981,10 +1457,29 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_relations_criterias_items)) die('Missing id_relations_criterias_items parameter.');
+		if (!is_numeric($id_relations_criterias_items)) die(t('Missing').' id_relations_criterias_items.');
+
+		# make sure it belongs to this user
+		$sql = '
+			SELECT
+				id
+			FROM
+				relations_criterias_items
+			WHERE
+				id="'.dbres($link, $id_relations_criterias_items).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the relation, maybe this is not yours.'));
+		}
 
 		# delete criteria relations
-		$sql = 'DELETE FROM relations_criterias_items WHERE id="'.dbres($link, $id_relations_criterias_items).'"';
+		$sql = '
+			DELETE FROM
+				relations_criterias_items
+			WHERE
+				id="'.dbres($link, $id_relations_criterias_items).'"
+			';
 		$r = db_query($link, $sql);
 
 		break;
@@ -993,10 +1488,27 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_relations_packlists_items)) die('Missing id_relations_packlists_items parameter.');
+		if (!is_numeric($id_relations_packlists_items)) die(t('Missing').' id_relations_packlists_items.');
+
+		# make sure it belongs to this user
+		$sql = '
+			SELECT
+				id
+			FROM
+				criterias
+			WHERE
+				id="'.dbres($link, $id_relations_packlists_items).'" AND id_users="'.dbres($link, get_logged_in_user('id')).'"';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the relation, maybe this is not yours.'));
+		}
 
 		# delete packlist relations
-		$sql = 'DELETE FROM relations_packlists_items WHERE id="'.dbres($link, $id_relations_packlists_items).'"';
+		$sql = '
+			DELETE FROM
+				relations_packlists_items
+			WHERE
+				id="'.dbres($link, $id_relations_packlists_items).'"
+			';
 		$r = db_query($link, $sql);
 
 		break;
@@ -1005,17 +1517,50 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlists)) die('Missing id_packlists parameter.');
-		if (!strlen($title)) die('Missing title parameter.');
-		if (!strlen($weight)) die('Missing weight parameter.');
+		if (!is_numeric($id_packlists)) die(t('Missing').' id_packlists.');
+		if (!strlen($title)) die(t('Missing').' title.');
+		if (!strlen($weight)) die(t('Missing').' weight.');
 
 		if ($id_packlist_items) {
-			# update packed status
-			$sql = 'UPDATE packlist_items SET title="'.dbres($link, $title).'", weight="'.dbres($link, $weight).'" WHERE id="'.dbres($link, $id_packlist_items).'"';
+			# make sure it belongs to this user
+			$sql = '
+				SELECT
+					id
+				FROM
+					packlist_items
+				WHERE
+					id="'.dbres($link, $id_packlist_items).'" AND
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
+				';
+			if (!count(db_query($link, $sql))) {
+				die(t('Could not find the packlist item, maybe this is not yours.'));
+			}
+
+			# update packlist item
+			$sql = '
+				UPDATE
+					packlist_items
+				SET
+					title="'.dbres($link, $title).'",
+					weight="'.dbres($link, $weight).'"
+				WHERE
+					id="'.dbres($link, $id_packlist_items).'"
+				';
 			$r = db_query($link, $sql);
 		} else {
-			# delete packlist relations
-			$sql = 'INSERT INTO  packlist_items (id_packlists, title, weight) VALUES("'.dbres($link, $id_packlists).'","'.dbres($link, $title).'","'.dbres($link, $weight).'")';
+			# insert packlist item
+			$sql = '
+				INSERT INTO packlist_items (
+					id_packlists,
+					id_users,
+					title,
+					weight
+				) VALUES(
+					"'.dbres($link, $id_packlists).'",
+					"'.dbres($link, get_logged_in_user('id')).'",
+					"'.dbres($link, $title).'",
+					"'.dbres($link, $weight).'"
+				)';
 			$r = db_query($link, $sql);
 		}
 		break;
@@ -1024,10 +1569,45 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlist_items)) die('Missing id_packlist_items.');
+		if (!is_numeric($id_packlist_items)) die(t('Missing').' id_packlist_items.');
+
+		# make sure it belongs to this user
+		$sql = '
+			SELECT
+				id
+			FROM
+				packlist_items
+			WHERE
+				id="'.dbres($link, $id_packlist_items).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the packlist item, maybe this is not yours.'));
+		}
 
 		# delete packlist relations
-		$sql = 'DELETE FROM packlist_items WHERE id="'.dbres($link, $id_packlist_items).'"';
+		$sql = '
+			DELETE FROM
+				packlist_items
+			WHERE
+				id="'.dbres($link, $id_packlist_items).'"
+			';
+		$r = db_query($link, $sql);
+
+		break;
+
+	case 'delete_user':
+
+		if (!is_logged_in()) break;
+
+		if (!is_numeric($id_users)) die(t('Missing').' id_users.');
+
+		# delete packlist relations
+		$sql = '
+			DELETE FROM
+				users
+			WHERE
+				id="'.dbres($link, $id_users).'"
+			';
 		$r = db_query($link, $sql);
 
 		break;
@@ -1036,11 +1616,32 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_relations_packlists_items)) die('Missing id_packlist_items parameter.');
-		if (!is_numeric($inuse)) die('Missing inuse parameter.');
+		if (!is_numeric($id_relations_packlists_items)) die(t('Missing').' id_packlist_items.');
+		if (!is_numeric($inuse)) die(t('Missing').' inuse.');
+
+		# make sure it belongs to this user
+		$sql = '
+			SELECT
+				id
+			FROM
+				relations_packlists_items
+			WHERE
+				id="'.dbres($link, $id_relations_packlists_items).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the relation, maybe this is not yours.'));
+		}
 
 		# update inuse status
-		$sql = 'UPDATE relations_packlists_items SET inuse="'.dbres($link, $inuse).'" WHERE id="'.dbres($link, $id_relations_packlists_items).'"';
+		$sql = '
+			UPDATE
+				relations_packlists_items
+			SET
+				inuse="'.dbres($link, $inuse).'"
+			WHERE
+				id="'.dbres($link, $id_relations_packlists_items).'"
+			';
 		$r = db_query($link, $sql);
 
 		echo json_encode(array(
@@ -1052,11 +1653,32 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlist_items)) die('Missing id_packlist_items parameter.');
-		if (!is_numeric($inuse)) die('Missing inuse parameter.');
+		if (!is_numeric($id_packlist_items)) die(t('Missing').' id_packlist_items.');
+		if (!is_numeric($inuse)) die(t('Missing').' inuse.');
+
+		# make sure it belongs to this user
+		$sql = '
+			SELECT
+				id
+			FROM
+				packlist_items
+			WHERE
+				id="'.dbres($link, $id_packlists_items).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the packlist item, maybe this is not yours.'));
+		}
 
 		# update inuse status
-		$sql = 'UPDATE packlist_items SET inuse="'.dbres($link, $inuse).'" WHERE id="'.dbres($link, $id_packlist_items).'"';
+		$sql = '
+			UPDATE
+				packlist_items
+			SET
+				inuse="'.dbres($link, $inuse).'"
+			WHERE
+				id="'.dbres($link, $id_packlist_items).'"
+			';
 		$r = db_query($link, $sql);
 
 		echo json_encode(array(
@@ -1068,11 +1690,32 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_relations_packlists_items)) die('Missing id_packlist_items parameter.');
-		if (!is_numeric($packed)) die('Missing packed parameter.');
+		if (!is_numeric($id_relations_packlists_items)) die(t('Missing').' id_packlist_items.');
+		if (!is_numeric($packed)) die(t('Missing').' packed.');
+
+		# make sure it belongs to this user
+		$sql = '
+			SELECT
+				id
+			FROM
+				packlist_items
+			WHERE
+				id="'.dbres($link, $id_packlists_items).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the packlist item, maybe this is not yours.'));
+		}
 
 		# update packed status
-		$sql = 'UPDATE relations_packlists_items SET packed="'.dbres($link, $packed).'" WHERE id="'.dbres($link, $id_relations_packlists_items).'"';
+		$sql = '
+			UPDATE
+				relations_packlists_items
+			SET
+				packed="'.dbres($link, $packed).'"
+			WHERE
+				id="'.dbres($link, $id_relations_packlists_items).'"
+			';
 		$r = db_query($link, $sql);
 
 		echo json_encode(array(
@@ -1084,11 +1727,31 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlist_items)) die('Missing id_packlist_items parameter.');
-		if (!is_numeric($packed)) die('Missing packed parameter.');
+		if (!is_numeric($id_packlist_items)) die(t('Missing').' id_packlist_items.');
+		if (!is_numeric($packed)) die(t('Missing').' packed.');
 
+		# make sure it belongs to this user
+		$sql = '
+			SELECT
+				id
+			FROM
+				packlist_items
+			WHERE
+				id="'.dbres($link, $id_packlists_items).'" AND
+				id_users="'.dbres($link, get_logged_in_user('id')).'"
+			';
+		if (!count(db_query($link, $sql))) {
+			die(t('Could not find the packlist item, maybe this is not yours.'));
+		}
 		# update packed status
-		$sql = 'UPDATE packlist_items SET packed="'.dbres($link, $packed).'" WHERE id="'.dbres($link, $id_packlist_items).'"';
+		$sql = '
+			UPDATE
+				packlist_items
+			SET
+				packed="'.dbres($link, $packed).'"
+			WHERE
+				id="'.dbres($link, $id_packlist_items).'"
+			';
 		$r = db_query($link, $sql);
 
 		echo json_encode(array(
@@ -1099,8 +1762,11 @@ switch ($action) {
 	case 'login': # login taken from mediaarchive
 		if (is_logged_in()) break;
 		if ($logintype === 'visum') {
+			if (!file_exists(dirname(__FILE__).'/class-visum.php')) {
+				die(t('Local Visum support is not available.'));
+			}
 			# visum login begin
-			if (!$ticket) die('Missing ticket.');
+			if (!$ticket) die(t('Missing').' ticket.');
 			$method='http';
 			if ($method === 'http') {
 				# this is what is needed to get Visum login over HTTP
@@ -1123,12 +1789,12 @@ switch ($action) {
 				$visum_user = $visum->getUserByTicket($ticket);
 			} catch(VisumException $e) {
 				$t = $e->getResponseArray();
-				die('Error: '.$t['error']);
+				die(t('Error').': '.$t['error']);
 			} catch(Exception $e) {
 				die($e->getMessage());
 			}
 
-			if (!isset($visum_user['id_users'])) die('Missing user id in visum response.');
+			if (!isset($visum_user['id_users'])) die(t('Missing user id in Visum response.'));
 			$id_visum = $visum_user['id_users'];
 
 			# update local credentials with what we got from visum
@@ -1144,12 +1810,26 @@ switch ($action) {
 			if (count($iu) > 0) {
 				$iu['updated'] = date('Y-m-d H:i:s');
 				$iu = dbpua($link, $iu);
-				$sql = 'UPDATE users SET '.implode(',',$iu).' WHERE id_visum="'.dbres($link, $id_visum).'"';
+				$sql = '
+					UPDATE
+						users
+					SET
+						'.implode(',',$iu).'
+					WHERE
+						id_visum="'.dbres($link, $id_visum).'"
+					';
 				$r = db_query($link, $sql);
 			}
 
 			# try to find the user, did it exist in local db?
-			$sql = 'SELECT * FROM users WHERE id_visum="'.dbres($link, $id_visum).'"';
+			$sql = '
+				SELECT
+					*
+				FROM
+					users
+				WHERE
+					id_visum="'.dbres($link, $id_visum).'"
+				';
 			$r = db_query($link, $sql);
 
 			# mysql_result_as_array($result, $users);
@@ -1165,11 +1845,18 @@ switch ($action) {
 			# visum login end
 		} else if ($logintype='local') {
 			# try to find the user, did it exist in local db?
-			$sql = 'SELECT * FROM users WHERE username="'.dbres($link, $username).'" AND password=ENCRYPT("'.dbres($link, $password).'", "'.dbres($link, $password_salt).'")';
-			echo $sql;
+			$sql = '
+				SELECT
+					*
+				FROM
+					users
+				WHERE
+					username="'.dbres($link, $username).'" AND
+					password=ENCRYPT("'.dbres($link, $password).'", "'.dbres($link, $password_salt).'")
+				';
 			$r = db_query($link, $sql);
 
-			if (count($r) < 1) die(_('No user found in local db.'));
+			if (count($r) < 1) die(_(t('No user found in local db.')));
 			$user = reset($r);
 
 			# this means user is logged in
@@ -1195,7 +1882,14 @@ switch ($action) {
 			break;
 		}
 
-		$sql = 'SELECT * FROM items ORDER BY location';
+		$sql = '
+			SELECT
+				*
+			FROM
+				items
+			ORDER BY
+				location
+			';
 		$items = db_query($link, $sql);
 
 		# --- check locations
@@ -1214,7 +1908,15 @@ switch ($action) {
 				if (!strlen($v)) continue;
 
 				# get all matching locations based on title
-				$sql = 'SELECT id,title FROM locations WHERE title="'.dbres($link, $v).'"';
+				$sql = '
+					SELECT
+						id,
+						title
+					FROM
+						locations
+					WHERE
+						title="'.dbres($link, $v).'"
+					';
 				$loc = db_query($link, $sql);
 
 				# was a location found?
@@ -1224,7 +1926,12 @@ switch ($action) {
 				# was no location found?
 				} else {
 					# then insert the location
-					$sql = 'INSERT INTO locations (title) VALUES("' . dbres($link, $v) .'")';
+					$sql = '
+						INSERT INTO locations (
+							title
+						) VALUES(
+							"' . dbres($link, $v) .'"
+						)';
 					$loc = db_query($link, $sql);
 					$loc = array(
 						'id' => db_insert_id($link),
@@ -1233,12 +1940,27 @@ switch ($action) {
 				}
 
 				# get all matching relations based on id of location and item
-				$sql = 'SELECT * FROM relations_items_locations WHERE id_locations="'.dbres($link, $loc['id']).'" AND id_items="'.dbres($link, $id_items).'"';
+				$sql = '
+					SELECT
+						*
+					FROM
+						relations_items_locations
+					WHERE
+						id_locations="'.dbres($link, $loc['id']).'" AND
+						id_items="'.dbres($link, $id_items).'"
+					';
 				$r = db_query($link, $sql);
 				# no relation match?
 				if (!count($r)) {
 					# then insert the relation
-					$sql = 'INSERT INTO relations_items_locations (id_items, id_locations) VALUES('.(int)$id_items.','.(int)$loc['id'].')';
+					$sql = '
+						INSERT INTO relations_items_locations (
+							id_items,
+							id_locations
+						) VALUES(
+							'.(int)$id_items.',
+							'.(int)$loc['id'].'
+						)';
 					$r = db_query($link, $sql);
 					$valid_id_relations_items_locations[] = db_insert_id($link);
 				} else {
@@ -1248,12 +1970,17 @@ switch ($action) {
 
 			# delete all invalid ones
 			if (count($valid_id_relations_items_locations)) {
-				$sql = 'DELETE FROM relations_items_locations WHERE id_items="'.(int)$id_items.'" AND id NOT IN ('.implode(',', $valid_id_relations_items_locations).')';
+				$sql = '
+					DELETE FROM
+						relations_items_locations
+					WHERE
+						id_items="'.(int)$id_items.'" AND
+						id NOT IN ('.implode(',', $valid_id_relations_items_locations).')
+					';
 				db_query($link, $sql);
 			}
 		}
 
 		break;
 }
-
 ?>
