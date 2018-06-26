@@ -28,6 +28,7 @@
 # 2018-04-13 23:49:00 - adding packlist notes
 # 2018-06-24 17:58:00 - adding local login
 # 2018-06-25 18:58:00 - adding local user management and multi user support
+# 2018-06-26 16:09:00 - adding error handling
 
 if (!isset($action)) die();
 
@@ -40,11 +41,13 @@ if (isset($editusers)) {
 		}
 
 		if (!validate_user($user['username'])) {
-			die(t('Username in editusers array is too short, too long or contain invalid characters.'));
+			$errors[] = t('Username in editusers array is too short, too long or contain invalid characters.');
+			break;
 		}
 
 		if (!validate_pass($user['password'])) {
-			die(t('Password in editusers array is too short or does not contain letters or digits.'));
+			$errors[] = t('Password in editusers array is too short or does not contain letters or digits.');
+			break;
 		}
 
 		$sql = '
@@ -78,7 +81,8 @@ if (isset($editusers)) {
 		} else {
 			# make sure visum users are not tampered with
 			if ($result[0]['id_visum'] !== '0') {
-				die(t('A username in editusers array matches a Visum user. Cannot edit Visum users with the editusers array.'));
+				$errors[] = t('A username in editusers array matches a Visum user. Cannot edit Visum users with the editusers array.');
+				break;
 			}
 			$iu['updated'] = date('Y-m-d H:i:s');
 			$iu = dbpua($link, $iu);
@@ -169,7 +173,11 @@ switch ($action) {
 		if (!is_logged_in()) break;
 
 		# make sure required fields are filled in
-		if (strlen($title) < 3) die(t('Fields are not filled in.'));
+		if (strlen($title) < 3) {
+			$errors[] = t('Fields are not filled in.');
+			$view = 'edit_category';
+			break;
+		}
 
 		# make an array to insert or update
 		$iu = array(
@@ -189,7 +197,9 @@ switch ($action) {
 					id_users="'.dbres($link, get_logged_in_user('id')).'"
 				';
 			if (!count(db_query($link, $sql))) {
-				die(t('Could not find the category, maybe this is not yours.'));
+				$errors[] = t('Could not find the category, maybe this is not yours.');
+				$view = 'edit_category';
+				break;
 			}
 
 			$iu = dbpua($link, $iu);
@@ -222,7 +232,11 @@ switch ($action) {
 		if (!is_logged_in()) break;
 
 		# make sure required fields are filled in
-		if (strlen($title) < 3) die(t('Fields are not filled in.'));
+		if (strlen($title) < 3) {
+			$errors[] = t('Fields are not filled in.');
+			$view = 'edit_criteria';
+			break;
+		}
 
 		# make an array to insert or update
 		$iu = array(
@@ -244,7 +258,9 @@ switch ($action) {
 					id_users="'.dbres($link, get_logged_in_user('id')).'"
 				';
 			if (!count(db_query($link, $sql))) {
-				die(t('Could not find the criteria, maybe this is not yours.'));
+				$errors[] = t('Could not find the criteria, maybe this is not yours.');
+				$view = 'edit_criteria';
+				break;
 			}
 
 			$iu['updated'] = date('Y-m-d H:i:s');
@@ -280,7 +296,11 @@ switch ($action) {
 		if (!is_logged_in()) break;
 
 		# make sure required fields are filled in
-		if (strlen($title) < 3) die(t('Fields are not filled in.'));
+		if (strlen($title) < 3) {
+			$errors[] = t('Fields are not filled in.');
+			$view = 'edit_location';
+			break;
+		}
 
 		# make an array to insert or update
 		$iu = array(
@@ -301,7 +321,9 @@ switch ($action) {
 					id_users="'.dbres($link, get_logged_in_user('id')).'"
 				';
 			if (!count(db_query($link, $sql))) {
-				die(t('Could not find the location, maybe this is not yours.'));
+				$errors[] = t('Could not find the location, maybe this is not yours.');
+				$view = 'edit_location';
+				break;
 			}
 
 			$iu = dbpua($link, $iu);
@@ -336,7 +358,9 @@ switch ($action) {
 			!isset($_FILES['file']['error']) ||
 			is_array($_FILES['file']['error'])
 		) {
-			die(t('Invalid parameters.'));
+			$errors[] = t('Invalid parameters.');
+			$view = 'edit_location';
+			break;
 		}
 
 		# check error value
@@ -348,7 +372,9 @@ switch ($action) {
 
 				# filesize check
 				if ($_FILES['file']['size'] > 100000000) {
-					die(t('Exceeded filesize limit.'));
+					$errors[] = t('Exceeded filesize limit.');
+					$view = 'edit_location';
+					break;
 				}
 
 				# mime check - do not trust $_FILES mime value
@@ -363,7 +389,9 @@ switch ($action) {
 					),
 					true
 				)) {
-					die(t('Invalid file format.'));
+					$errors[] = t('Invalid file format.');
+					$view = 'edit_location';
+					break;
 				}
 
 				# missing file dir?
@@ -371,7 +399,11 @@ switch ($action) {
 					!is_dir(FILE_DIR)
 					|| trim(FILE_DIR) === '/'
 					|| substr(FILE_DIR, -1,1) !== '/'
-				) die(t('Fatal, file directory does not exist: '.FILE_DIR));
+				) {
+					$errors[] = t('Fatal, file directory does not exist').': '.FILE_DIR;
+					$view = 'edit_location';
+					break;
+				}
 
 				# is there no files id supplied?
 				if (!$id_files) {
@@ -407,14 +439,21 @@ switch ($action) {
 
 				# make sure it does not exist
 				if (file_exists($targetfile)) {
-					if (!unlink($targetfile)) die(t('Failed deleting').' '.$targetfile);
+					if (!unlink($targetfile)) {
+						$errors[] = t('Failed deleting').' '.$targetfile;
+						$view = 'edit_location';
+						break;
+
+					}
 				}
 
 				if (!move_uploaded_file(
 					$_FILES['file']['tmp_name'],
 					$targetfile
 				)) {
-					die(t('Failed to move uploaded file.'));
+					$errors[] = t('Failed to move uploaded file.');
+					$view = 'edit_location';
+					break;
 				}
 
 				# missing thumbnail dir?
@@ -422,7 +461,11 @@ switch ($action) {
 					!is_dir(THUMBNAIL_DIR)
 					|| trim(THUMBNAIL_DIR) === '/'
 					|| substr(THUMBNAIL_DIR, -1,1) !== '/'
-				) die(t('Fatal, thumbnail directory does not exist').': '.THUMBNAIL_DIR);
+				) {
+					$errors[] = t('Fatal, thumbnail directory does not exist').': '.THUMBNAIL_DIR;
+					$view = 'edit_location';
+					break;
+				}
 
 				# make a thumbnail of it, if it is not already there
 
@@ -431,7 +474,11 @@ switch ($action) {
 
 				# make sure it does not exist
 				if (file_exists($thumbfile)) {
-					if (!unlink($thumbfile)) die(t('Failed deleting').' '.$thumbfile);
+					if (!unlink($thumbfile)) {
+						$errors[] = t('Failed deleting').' '.$thumbfile;
+						$view = 'edit_location';
+						break;
+					}
 				}
 
 				$s = trim(exec('ps ax|grep convert|grep -v grep'));
@@ -445,7 +492,11 @@ switch ($action) {
 
 				$return2 = exec(MAGICK_PATH.'convert '.escapeshellarg($targetfile).' -quality 75 -auto-orient -strip -sample 320x240 '.escapeshellarg($thumbfile), $output, $return);
 
-				if (!file_exists($thumbfile)) die(t('Failed creating thumbnail').': '.$thumbfile.'. Command output was: '.implode("\n", $output).$return2.$return);
+				if (!file_exists($thumbfile)) {
+					$errors[] = t('Failed creating thumbnail').': '.$thumbfile.'. Command output was: '.implode("\n", $output).$return2.$return;
+					$view = 'edit_location';
+					break;
+				}
 				# upload complete
 
 				break;
@@ -453,11 +504,17 @@ switch ($action) {
 				# no file uploaded, that is ok
 				break;
 			case UPLOAD_ERR_INI_SIZE:
-				die(t('Exceeded filesize limit in ini setting.'));
+				$errors[] = t('Exceeded filesize limit in ini setting.');
+				$view = 'edit_location';
+				break;
 			case UPLOAD_ERR_FORM_SIZE:
-				die(t('Exceeded filesize limit in form.'));
+				$errors[] = t('Exceeded filesize limit in form.');
+				$view = 'edit_location';
+				break;
 			default:
-				die(t('Unknown errors.'));
+				$errors[] = t('Unknown error.');
+				$view = 'edit_location';
+				break;
 		}
 
 		break;
@@ -536,7 +593,11 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_locations)) die(t('Missing').' id_locations.');
+		if (!is_numeric($id_locations)) {
+			$errors[] = t('Missing').' id_locations.';
+			$view = 'locations';
+			break;
+		}
 
 		# check connected locations
 		$sql = '
@@ -550,7 +611,9 @@ switch ($action) {
 		$r = db_query($link, $sql);
 
 		if ($r) {
-			die(t('Location with id #').(int)$id_locations.' '.t('has relations, remove them first.'));
+			$errors[] = t('Location with id #').(int)$id_locations.' '.t('has relations, remove them first.');
+			$view = 'locations';
+			break;
 		}
 
 		$sql = '
@@ -644,7 +707,9 @@ switch ($action) {
 
 		# make sure required fields are filled in
 		if (strlen($title) < 3) {
-			die(t('Fields are not filled in.'));
+			$errors[] = t('Fields are not filled in.');
+			$view = 'edit_item';
+			break;
 		}
 
 		# make an array to insert or update
@@ -686,7 +751,9 @@ switch ($action) {
 					id_users="'.dbres($link, get_logged_in_user('id')).'"
 				';
 			if (!count(db_query($link, $sql))) {
-				die(t('Could not find the item, maybe this is not yours.'));
+				$errors[] = t('Could not find the item, maybe this is not yours.');
+				$view = 'edit_item';
+				break;
 			}
 
 			$iu = dbpua($link, $iu);
@@ -851,7 +918,9 @@ switch ($action) {
 			!isset($_FILES['file']['error']) ||
 			is_array($_FILES['file']['error'])
 		) {
-			die(t('Invalid parameters.'));
+			$errors[] = t('Invalid parameters.');
+			$view = 'edit_item';
+			break;
 		}
 
 		# check error value
@@ -863,7 +932,9 @@ switch ($action) {
 
 				# filesize check
 				if ($_FILES['file']['size'] > 100000000) {
-					die(t('Exceeded filesize limit.'));
+					$errors[] = t('Exceeded filesize limit.');
+					$view = 'edit_item';
+					break;
 				}
 
 				# mime check - do not trust $_FILES mime value
@@ -878,7 +949,9 @@ switch ($action) {
 					),
 					true
 				)) {
-					die(t('Invalid file format.'));
+					$errors[] = t('Invalid file format.');
+					$view = 'edit_item';
+					break;
 				}
 
 				# missing file dir?
@@ -886,7 +959,11 @@ switch ($action) {
 					!is_dir(FILE_DIR)
 					|| trim(FILE_DIR) === '/'
 					|| substr(FILE_DIR, -1,1) !== '/'
-				) die(t('Fatal, file directory does not exist').': '.FILE_DIR);
+				) {
+					$errors[] = t('Fatal, file directory does not exist').': '.FILE_DIR;
+					$view = 'edit_item';
+					break;
+				}
 
 				# is there no files id supplied?
 				if (!$id_files) {
@@ -924,7 +1001,9 @@ switch ($action) {
 				# make sure it does not exist
 				if (file_exists($targetfile)) {
 					if (!unlink($targetfile)) {
-						die(t('Failed deleting').' '.$targetfile);
+						$errors[] = t('Failed deleting').' '.$targetfile;
+						$view = 'edit_item';
+						break;
 					}
 				}
 
@@ -932,7 +1011,9 @@ switch ($action) {
 					$_FILES['file']['tmp_name'],
 					$targetfile
 				)) {
-					die(t('Failed to move uploaded file.'));
+					$errors[] = t('Failed to move uploaded file.');
+					$view = 'edit_item';
+					break;
 				}
 
 				# missing thumbnail dir?
@@ -940,7 +1021,11 @@ switch ($action) {
 					!is_dir(THUMBNAIL_DIR)
 					|| trim(THUMBNAIL_DIR) === '/'
 					|| substr(THUMBNAIL_DIR, -1,1) !== '/'
-				) die(t('Fatal, thumbnail directory does not exist').': '.THUMBNAIL_DIR);
+				) {
+					$errors[] = t('Fatal, thumbnail directory does not exist').': '.THUMBNAIL_DIR;
+					$view = 'edit_item';
+					break;
+				}
 
 				# make a thumbnail of it, if it is not already there
 
@@ -949,11 +1034,19 @@ switch ($action) {
 
 				# make sure it does not exist
 				if (file_exists($thumbfile)) {
-					if (!unlink($thumbfile)) die(t('Failed deleting').' '.$thumbfile);
+					if (!unlink($thumbfile)) {
+						$errors[] = t('Failed deleting').' '.$thumbfile;
+						$view = 'edit_item';
+						break;
+					}
 				}
 
 				$s = trim(exec('ps ax|grep convert|grep -v grep'));
-				if (strlen($s)) return false;
+				if (strlen($s)) {
+					$errors[] = t('A image conversion is already in progress.');
+					$view = 'edit_item';
+					break;
+				}
 
 				# 40 funkar ok, himlar blir visserligen pixlade men inte så mkt
 				# 30 är gränsfall, det är randigt om man kollar noga
@@ -963,7 +1056,11 @@ switch ($action) {
 
 				$return2 = exec(MAGICK_PATH.'convert '.escapeshellarg($targetfile).' -quality 75 -auto-orient -strip -sample 320x240 '.escapeshellarg($thumbfile), $output, $return);
 
-				if (!file_exists($thumbfile)) die(t('Failed creating thumbnail').': '.$thumbfile.'. Command output was: '.implode("\n", $output).$return2.$return);
+				if (!file_exists($thumbfile)) {
+					$errors[] = t('Failed creating thumbnail').': '.$thumbfile.'. Command output was: '.implode("\n", $output).$return2.$return;
+					$view = 'edit_item';
+					break;
+				}
 				# upload complete
 
 				break;
@@ -971,11 +1068,18 @@ switch ($action) {
 				# no file uploaded, that is ok
 				break;
 			case UPLOAD_ERR_INI_SIZE:
-				die(t('Exceeded filesize limit in ini setting.'));
+				$errors[] = t('Exceeded filesize limit in ini setting.');
+				$view = 'edit_item';
+				break;
 			case UPLOAD_ERR_FORM_SIZE:
-				die(t('Exceeded filesize limit in form.'));
+				$errors[] = t('Exceeded filesize limit in form.');
+				$view = 'edit_item';
+				break;
+
 			default:
-				die(t('Unknown errors.'));
+				$errors[] = t('Unknown error.');
+				$view = 'edit_item';
+				break;
 		}
 
 		switch ($view) {
@@ -1006,7 +1110,9 @@ switch ($action) {
 
 		# make sure required fields are filled in
 		if (strlen($title) < 3) {
-			die(t('Fields are not filled in.'));
+			$errors[] = t('Fields are not filled in.');
+			$view = 'edit_packlist';
+			break;
 		}
 
 		# make an array to insert or update
@@ -1029,7 +1135,9 @@ switch ($action) {
 					id_users="'.dbres($link, get_logged_in_user('id')).'"
 				';
 			if (!count(db_query($link, $sql))) {
-				die(t('Could not find the packlist, maybe this is not yours.'));
+				$errors[] = t('Could not find the packlist, maybe this is not yours.');
+				$view = 'edit_packlist';
+				break;
 			}
 
 			$iu['updated'] = date('Y-m-d H:i:s');
@@ -1119,8 +1227,17 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_items)) die(t('Missing').' id_items.');
-		if (!is_numeric($id_criterias)) die(t('Missing').' id_criterias.');
+		if (!is_numeric($id_items)) {
+			$errors[] = t('Missing').' id_items.';
+			$view = 'index';
+			break;
+		}
+
+		if (!is_numeric($id_criterias)) {
+			$errors[] = t('Missing').' id_criterias.';
+			$view = 'index';
+			break;
+		}
 
 		# check that relation is not there before
 		$sql = '
@@ -1163,8 +1280,17 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_items)) die(t('Missing').' id_items.');
-		if (!is_numeric($id_packlists)) die(t('Missing').' id_packlists.');
+		if (!is_numeric($id_items)) {
+			$errors[] = t('Missing').' id_items.';
+			$view = 'packlists';
+			break;
+		}
+
+		if (!is_numeric($id_packlists)) {
+			$errors[] = t('Missing').' id_packlists.';
+			$view = 'packlists';
+			break;
+		}
 
 		# check that relation is not there before
 		$sql = '
@@ -1207,7 +1333,11 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlists)) die(t('Missing').' id_packlists.');
+		if (!is_numeric($id_packlists)) {
+			$errors[] = t('Missing').' id_packlists.';
+			$view = 'packlists';
+			break;
+		}
 
 		# make sure it belongs to this user
 		$sql = '
@@ -1220,7 +1350,9 @@ switch ($action) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 			';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the packlist, maybe this is not yours.'));
+			$errors[] = t('Could not find the packlist, maybe this is not yours.');
+			$view = 'packlists';
+			break;
 		}
 
 		$iu = dbpua($link, array(
@@ -1245,7 +1377,11 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_relations_packlists_items)) die(t('Missing').' id_relations_packlists_items.');
+		if (!is_numeric($id_relations_packlists_items)) {
+			$errors[] = t('Missing').' id_relations_packlists_items.';
+			$view = 'packlists';
+			break;
+		}
 
 		# make sure it belongs to this user
 		$sql = '
@@ -1258,7 +1394,9 @@ switch ($action) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 			';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the relation, maybe this is not yours.'));
+			$errors[] = t('Could not find the relation, maybe this is not yours.');
+			$view = 'packlists';
+			break;
 		}
 
 		$iu = dbpua($link, array(
@@ -1281,7 +1419,11 @@ switch ($action) {
 		if (!is_logged_in()) break;
 
 		# make sure required fields are filled in
-		if (strlen($username) < 3) die(t('Fields are not filled in.'));
+		if (strlen($username) < 3) {
+			$errors[] = t('Fields are not filled in.');
+			$view = 'edit_user';
+			break;
+		}
 
 		# make an array to insert or update
 		$iu = array(
@@ -1303,11 +1445,15 @@ switch ($action) {
 		$result = db_query($link, $sql);
 
 		if (count($result)) {
-			die(t('A user with the selected username already exists.'));
+			$errors[] = t('A user with the selected username already exists.');
+			$view = 'edit_user';
+			break;
 		}
 
 		if (!validate_user($username)) {
-			die(t('Username is too short, too long or contain invalid characters.'));
+			$errors[] = t('Username is too short, too long or contain invalid characters.');
+			$view = 'edit_user';
+			break;
 		}
 
 		# is this an existing item?
@@ -1316,15 +1462,21 @@ switch ($action) {
 			# has password been sent in
 			if ($password) {
 				if ($result[0]['id_visum'] !== '0') {
-					die(t('A username in editusers array matches a Visum user. Cannot edit Visum users with the editusers array.'));
+					$errors[] = t('A username in editusers array matches a Visum user. Cannot edit Visum users with the editusers array.');
+					$view = 'edit_user';
+					break;
 				}
 
 				if (!validate_pass($password)) {
-					die(t('Password is too short or does not contain letters or digits.'));
+					$errors[] = t('Password is too short or does not contain letters or digits.');
+					$view = 'edit_user';
+					break;
 				}
 
 				if ($password != $password_retype) {
-					die(t('Password does not match password retype.'));
+					$errors[] = t('Password does not match password retype.');
+					$view = 'edit_user';
+					break;
 				}
 
 				$iu['password'] = $password;
@@ -1344,11 +1496,15 @@ switch ($action) {
 		# or is it a new item?
 		} else {
 			if (!validate_pass($password)) {
-				die(t('Password is too short or does not contain letters or digits.'));
+				$errors[] = t('Password is too short or does not contain letters or digits.');
+				$view = 'edit_user';
+				break;
 			}
 
 			if ($password != $password_retype) {
-				die(t('Password does not match password retype.'));
+				$errors[] = t('Password does not match password retype.');
+				$view = 'edit_user';
+				break;
 			}
 
 			$iu['id_visum'] = 0; # visum disabled for this user
@@ -1371,7 +1527,11 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_criterias)) die(t('Missing').' id_criterias.');
+		if (!is_numeric($id_criterias)) {
+			$errors[] = t('Missing').' id_criterias.';
+			$view = 'criterias';
+			break;
+		}
 
 		# make sure it belongs to this user
 		$sql = '
@@ -1384,7 +1544,9 @@ switch ($action) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 			';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the criteria, maybe this is not yours.'));
+			$errors[] = t('Could not find the criteria, maybe this is not yours.');
+			$view = 'criterias';
+			break;
 		}
 
 		# delete criteria relations
@@ -1418,7 +1580,11 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlists)) die(t('Missing').' id_packlists.');
+		if (!is_numeric($id_packlists)) {
+			$errors[] = t('Missing').' id_packlists.';
+			$view = 'packlists';
+			break;
+		}
 
 		# make sure it belongs to this user
 		$sql = '
@@ -1431,7 +1597,9 @@ switch ($action) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 			';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the packlist, maybe this is not yours.'));
+			$errors[] = t('Could not find the packlist, maybe this is not yours.');
+			$view = 'packlists';
+			break;
 		}
 
 		# delete packlist relations
@@ -1457,7 +1625,11 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_relations_criterias_items)) die(t('Missing').' id_relations_criterias_items.');
+		if (!is_numeric($id_relations_criterias_items)) {
+			$errors[] = t('Missing').' id_relations_criterias_items.';
+			$view = 'criterias';
+			break;
+		}
 
 		# make sure it belongs to this user
 		$sql = '
@@ -1470,7 +1642,9 @@ switch ($action) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 			';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the relation, maybe this is not yours.'));
+			$errors[] = t('Could not find the relation, maybe this is not yours.');
+			$view = 'packlists';
+			break;
 		}
 
 		# delete criteria relations
@@ -1488,7 +1662,11 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_relations_packlists_items)) die(t('Missing').' id_relations_packlists_items.');
+		if (!is_numeric($id_relations_packlists_items)) {
+			$errors[] = t('Missing').' id_relations_packlists_items.';
+			$view = 'packlists';
+			break;
+		}
 
 		# make sure it belongs to this user
 		$sql = '
@@ -1499,7 +1677,9 @@ switch ($action) {
 			WHERE
 				id="'.dbres($link, $id_relations_packlists_items).'" AND id_users="'.dbres($link, get_logged_in_user('id')).'"';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the relation, maybe this is not yours.'));
+			$errors[] = t('Could not find the relation, maybe this is not yours.');
+			$view = 'packlists';
+			break;
 		}
 
 		# delete packlist relations
@@ -1517,9 +1697,22 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlists)) die(t('Missing').' id_packlists.');
-		if (!strlen($title)) die(t('Missing').' title.');
-		if (!strlen($weight)) die(t('Missing').' weight.');
+		if (!is_numeric($id_packlists)) {
+			$errors[] = t('Missing').' id_packlists.';
+			$view = 'packlists';
+			break;
+		}
+
+		if (!strlen($title)) {
+			$errors[] = t('Missing').' title.';
+			$view = 'packlists';
+			break;
+		}
+		if (!strlen($weight)) {
+			$errors[] = t('Missing').' weight.';
+			$view = 'packlists';
+			break;
+		}
 
 		if ($id_packlist_items) {
 			# make sure it belongs to this user
@@ -1533,7 +1726,9 @@ switch ($action) {
 					id_users="'.dbres($link, get_logged_in_user('id')).'"
 				';
 			if (!count(db_query($link, $sql))) {
-				die(t('Could not find the packlist item, maybe this is not yours.'));
+				$errors[] = t('Could not find the packlist item, maybe this is not yours.');
+				$view = 'packlists';
+				break;
 			}
 
 			# update packlist item
@@ -1569,7 +1764,11 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlist_items)) die(t('Missing').' id_packlist_items.');
+		if (!is_numeric($id_packlist_items)) {
+			$errors[] = t('Missing').' id_packlist_items.';
+			$view = 'packlists';
+			break;
+		}
 
 		# make sure it belongs to this user
 		$sql = '
@@ -1581,7 +1780,9 @@ switch ($action) {
 				id="'.dbres($link, $id_packlist_items).'" AND
 				id_users="'.dbres($link, get_logged_in_user('id')).'"';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the packlist item, maybe this is not yours.'));
+			$errors[] = t('Could not find the packlist item, maybe this is not yours.');
+			$view = 'packlists';
+			break;
 		}
 
 		# delete packlist relations
@@ -1599,7 +1800,11 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_users)) die(t('Missing').' id_users.');
+		if (!is_numeric($id_users)) {
+			$errors[] = t('Missing').' id_users.';
+			$view = 'users';
+			break;
+		}
 
 		# delete packlist relations
 		$sql = '
@@ -1616,8 +1821,16 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_relations_packlists_items)) die(t('Missing').' id_packlist_items.');
-		if (!is_numeric($inuse)) die(t('Missing').' inuse.');
+		if (!is_numeric($id_relations_packlists_items)) {
+			$errors[] = t('Missing').' id_packlist_items.';
+			$view = 'packlists';
+			break;
+		}
+		if (!is_numeric($inuse)) {
+			$errors[] = t('Missing').' inuse.';
+			$view = 'packlists';
+			break;
+		}
 
 		# make sure it belongs to this user
 		$sql = '
@@ -1630,7 +1843,9 @@ switch ($action) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 			';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the relation, maybe this is not yours.'));
+			$errors[] = t('Could not find the relation, maybe this is not yours.');
+			$view = 'packlists';
+			break;
 		}
 
 		# update inuse status
@@ -1653,8 +1868,17 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlist_items)) die(t('Missing').' id_packlist_items.');
-		if (!is_numeric($inuse)) die(t('Missing').' inuse.');
+		if (!is_numeric($id_packlist_items)) {
+			$errors[] = t('Missing').' id_packlist_items.';
+			$view = 'packlists';
+			break;
+		}
+
+		if (!is_numeric($inuse)) {
+			$errors[] = t('Missing').' inuse.';
+			$view = 'packlists';
+			break;
+		}
 
 		# make sure it belongs to this user
 		$sql = '
@@ -1667,7 +1891,9 @@ switch ($action) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 			';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the packlist item, maybe this is not yours.'));
+			$errors[] = t('Could not find the packlist item, maybe this is not yours.');
+			$view = 'packlists';
+			break;
 		}
 
 		# update inuse status
@@ -1690,8 +1916,16 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_relations_packlists_items)) die(t('Missing').' id_packlist_items.');
-		if (!is_numeric($packed)) die(t('Missing').' packed.');
+		if (!is_numeric($id_relations_packlists_items)) {
+			$errors[] = t('Missing').' id_packlist_items.';
+			$view = 'packlists';
+			break;
+		}
+		if (!is_numeric($packed)) {
+			$errors[] = t('Missing').' packed.';
+			$view = 'packlists';
+			break;
+		}
 
 		# make sure it belongs to this user
 		$sql = '
@@ -1704,7 +1938,9 @@ switch ($action) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 			';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the packlist item, maybe this is not yours.'));
+			$errors[] = t('Could not find the packlist item, maybe this is not yours.');
+			$view = 'packlists';
+			break;
 		}
 
 		# update packed status
@@ -1727,8 +1963,16 @@ switch ($action) {
 
 		if (!is_logged_in()) break;
 
-		if (!is_numeric($id_packlist_items)) die(t('Missing').' id_packlist_items.');
-		if (!is_numeric($packed)) die(t('Missing').' packed.');
+		if (!is_numeric($id_packlist_items)) {
+			$errors[] = t('Missing').' id_packlist_items.';
+			$view = 'packlists';
+			break;
+		}
+		if (!is_numeric($packed)) {
+			$errors[] = t('Missing').' packed.';
+			$view = 'packlists';
+			break;
+		}
 
 		# make sure it belongs to this user
 		$sql = '
@@ -1741,7 +1985,9 @@ switch ($action) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 			';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the packlist item, maybe this is not yours.'));
+			$errors[] = t('Could not find the packlist item, maybe this is not yours.');
+			$view = 'packlists';
+			break;
 		}
 		# update packed status
 		$sql = '
@@ -1763,10 +2009,16 @@ switch ($action) {
 		if (is_logged_in()) break;
 		if ($logintype === 'visum') {
 			if (!file_exists(dirname(__FILE__).'/class-visum.php')) {
-				die(t('Local Visum support is not available.'));
+				$errors[] = t('Local Visum support is not available.');
+				$view = 'login';
+				break;
 			}
 			# visum login begin
-			if (!$ticket) die(t('Missing').' ticket.');
+			if (!$ticket) {
+				$errors[] = t('Missing').' ticket.';
+				$view = 'login';
+				break;
+			}
 			$method='http';
 			if ($method === 'http') {
 				# this is what is needed to get Visum login over HTTP
@@ -1789,12 +2041,20 @@ switch ($action) {
 				$visum_user = $visum->getUserByTicket($ticket);
 			} catch(VisumException $e) {
 				$t = $e->getResponseArray();
-				die(t('Error').': '.$t['error']);
+				$errors[] = t('Error').': '.$t['error'];
+				$view = 'login';
+				break;
 			} catch(Exception $e) {
-				die($e->getMessage());
+				$errors[] = $e->getMessage();
+				$view = 'login';
+				break;
 			}
 
-			if (!isset($visum_user['id_users'])) die(t('Missing user id in Visum response.'));
+			if (!isset($visum_user['id_users'])) {
+				$errors[] = t('Missing user id in Visum response.');
+				$view = 'login';
+				break;
+			}
 			$id_visum = $visum_user['id_users'];
 
 			# update local credentials with what we got from visum
@@ -1833,7 +2093,11 @@ switch ($action) {
 			$r = db_query($link, $sql);
 
 			# mysql_result_as_array($result, $users);
-			if (count($r) < 1) die(_('No user found in local db.'));
+			if (count($r) < 1) {
+				$errors[] = t('No such user found in local database.');
+				$view = 'login';
+				break;
+			}
 			$user = reset($r);
 
 			# this means user is logged in
@@ -1856,7 +2120,11 @@ switch ($action) {
 				';
 			$r = db_query($link, $sql);
 
-			if (count($r) < 1) die(_(t('No user found in local db.')));
+			if (count($r) < 1) {
+				$errors[] = t('No such user found in local database.');
+				$view = 'login';
+				break;
+			}
 			$user = reset($r);
 
 			# this means user is logged in

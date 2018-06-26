@@ -397,6 +397,14 @@ p.browse {
 	font-size: 16px;
 }
 
+p.error {
+		padding: 10px;
+		margin: 10px;
+		color: #000;
+		border: 1px solid red;
+		background-color: #ffdddd;
+}
+
 p.subdata {
 	padding-top: 7px;
 	border-top: 1px solid #000;

@@ -47,6 +47,7 @@
 	# 2018-05-04 23:58:00 - adding risk materials
 	# 2018-06-24 17:59:00 - adding local login
 	# 2018-06-25 18:58:00 - adding local user management and multi user support
+	# 2018-06-26 16:04:00 - adding error handling
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -198,6 +199,22 @@
 		</li>
 <?php		} # if-is-logged-in ?>
 	</ul>
+<?php
+	}
+
+	# are there errors, then print them
+	if (count($errors)) {
+?>
+	<p class="error">
+<?php
+		foreach ($errors as $k => $v) {
+			if ($k) {
+				echo ' ';
+			}
+			echo $v;
+		}
+?>
+	</p>
 <?php
 	}
 
@@ -445,7 +462,7 @@
 				break;
 			}
 ?>
-	<h2>Redigera plats<?php
+	<h2><?php echo t('Edit location'); ?><?php
 		if (isset($location['id'])) {
 			echo ' #'.$location['id'];
 		}

@@ -30,6 +30,7 @@
 # 2018-04-13 23:50:00 - adding packlist notes
 # 2018-05-04 23:58:00 - adding risk materials
 # 2018-06-25 18:58:00 - adding local user management and multi user support
+# 2018-06-26 16:04:00 - adding error handling
 
 if (!isset($view)) die();
 
@@ -475,7 +476,12 @@ switch ($view) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 		');
 
-		if (!count($criterias)) die('Criteria not found');
+		if (!count($criterias)) {
+			$errors[] = 'Criteria not found';
+			$view = 'criterias';
+			break;
+		}
+
 		$criteria = reset($criterias);
 
 		$items = db_query($link, '
@@ -502,7 +508,11 @@ switch ($view) {
 		if (!is_logged_in()) break;
 
 		# make sure id is specified
-		if (!$id_files || !is_numeric($id_files)) die('File ID must be specified.');
+		if (!$id_files || !is_numeric($id_files)) {
+			$errors[] = t('File ID must be specified.');
+			$view = 'index';
+			break;
+		}
 
 		# make sure it is ours
 		$sql = '
@@ -515,7 +525,9 @@ switch ($view) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 			';
 		if (!count(db_query($link, $sql))) {
-			die(t('Could not find the file, maybe it is not yours.'));
+			$errors[] = t('Could not find the file, maybe it is not yours.');
+			$view = 'index';
+			break;
 		}
 
 		# get thumbnail?
@@ -527,8 +539,12 @@ switch ($view) {
 			$fullpath = FILE_DIR.(int)$id_files.'.jpg';
 		}
 
-		# make sire file exists
-		if (!file_exists($fullpath)) die('File not found.');
+		# make sure file exists
+		if (!file_exists($fullpath)) {
+			$errors[] = t('File not found.');
+			$view = 'index';
+			break;
+		}
 
 		# output header - JPEG data
 		header('Content-Disposition: inline; filename='.basename($fullpath));
@@ -899,7 +915,12 @@ switch ($view) {
 				id_users="'.dbres($link, get_logged_in_user('id')).'"
 			');
 
-		if (!count($packlists)) die('Packlist not found');
+		if (!count($packlists)) {
+			$errors[] = t('Packlist not found');
+			$view = 'packlists';
+			break;
+		}
+
 		$packlist = reset($packlists);
 
 		$items = db_query($link, '

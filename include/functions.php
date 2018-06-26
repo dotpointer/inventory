@@ -31,6 +31,7 @@
 	# 2018-05-05 13:53:00 - adding risk materials continued
 	# 2018-06-24 17:57:00 - adding local login
 	# 2018-06-25 18:56:00 - minor html correction
+	# 2018-06-26 16:03:00 - adding error handling
 
 	define('SITE_SHORTNAME', 'inventory');
 	define('DATABASE_NAME', 'inventory');
@@ -46,6 +47,8 @@
 
 	$link = db_connect();
 	# mysql_set_charset('utf8', $link);
+
+	$errors = array();
 
 	if (!function_exists('shutdown_function')) {
 		# a function to run when the script shutdown
@@ -195,7 +198,7 @@
 	}
 
 	if (!file_exists(MAGICK_PATH.'convert')) {
-		die('ImageMagick is not installed.');
+		$errors[] = t('ImageMagick is not installed.');
 	}
 
 	function init_constants() {

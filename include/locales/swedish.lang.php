@@ -8,6 +8,7 @@
 # 2018-05-04 23:57:00 - adding risk materials
 # 2018-05-05 00:02:00 - adding risk materials continued
 # 2018-06-25 18:56:00 - adding missing texts
+# 2018-06-26 16:09:00 - adding error handling texts
 
 # store this into translations
 $translations['languages'][] = array(
@@ -125,9 +126,9 @@ $translations['languages'][] = array(
 		array('Next page', 'Nästa sida'),
 		array('No description.', 'Ingen beskrivning.'),
 		array('No', 'Nej'),
+		array('No such user found in local database.', 'Ingen sådan användare hittades i den lokala databasen.'),
 		array('Note!', 'Notera!'),
 		array('Notes', 'Anteckningar'),
-		array('No user found in local db.', 'Ingen användare hittades i lokal databas.'),
 		array('Object', 'Objekt'),
 		array('Objects', 'Objekt'),
 		array('Objects required by the criteria', 'Objekt som krävs av kriteriumet.'),
