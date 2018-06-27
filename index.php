@@ -48,6 +48,7 @@
 	# 2018-06-24 17:59:00 - adding local login
 	# 2018-06-25 18:58:00 - adding local user management and multi user support
 	# 2018-06-26 16:04:00 - adding error handling
+	# 2018-06-27 14:51:00 - adding translations json array
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -128,9 +129,7 @@
 		var
 			i = {
 				action: '<?php echo $action?>',
-				msg: {
-					confirm: '<?php echo t('Are you sure that you want to continue? This action cannot be reverted.'); ?>',
-				},
+				msg: <?php echo json_encode(get_translation_texts(), true); ?>,
 				time_diff: <?php echo microtime(true) * 1000; ?>  - (new Date().getTime()),
 				view: '<?php echo $view?>'
 			};

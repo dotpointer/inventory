@@ -1,5 +1,7 @@
 <?php
 
+# inventory translation file for swedish
+
 # changelog
 # 2018-03-15 02:30:00
 # 2018-04-13 23:49:00 - adding packlist notes
@@ -9,6 +11,7 @@
 # 2018-05-05 00:02:00 - adding risk materials continued
 # 2018-06-25 18:56:00 - adding missing texts
 # 2018-06-26 16:09:00 - adding error handling texts
+# 2018-06-27 14:50:00 - sorting and adding some texts
 
 # store this into translations
 $translations['languages'][] = array(
@@ -47,12 +50,12 @@ $translations['languages'][] = array(
 		array('cotton', 'bomull'),
 		array('Could not find the category, maybe this is not yours.', 'Kunde inte hitta kategorin, kanske är den inte din.'),
 		array('Could not find the criteria, maybe this is not yours.', 'Kunde inte hitta kriterien, kanske är den inte din.'),
+		array('Could not find the file, maybe it is not yours.', 'Kunde inte hitta filen, kanske är den inte din.'),
 		array('Could not find the item, maybe this is not yours.', 'Kunde inte hitta objektet, kanske är den inte din.'),
 		array('Could not find the location, maybe this is not yours.', 'Kunde inte hitta platsen, kanske är den inte din.'),
 		array('Could not find the packlist item, maybe this is not yours.', 'Kunde inte hitta packlisteobjektet, kanske är den inte din.'),
 		array('Could not find the packlist, maybe this is not yours.', 'Kunde inte hitta packlistan, kanske är den inte din.'),
 		array('Could not find the relation, maybe this is not yours.', 'Kunde inte hitta relationen, kanske är den inte din.'),
-		array('Could not find the file, maybe it is not yours.', 'Kunde inte hitta filen, kanske är den inte din.'),
 		array('Created', 'Skapad'),
 		array('Criteria', 'Kriteria'),
 		array('Criterias', 'Kriterier'),
@@ -145,6 +148,7 @@ $translations['languages'][] = array(
 		array('Remove', 'Radera'),
 		array('Risk materials', 'Riskmaterial'),
 		array('Save', 'Spara'),
+		array('Saved', 'Sparat'),
 		array('Search', 'Sök'),
 		array('Seldom', 'Sällan'),
 		array('Selected', 'Vald'),
@@ -188,7 +192,6 @@ $translations['languages'][] = array(
 		array('wool', 'ull'),
 		array('yarn', 'garn'),
 		array('Yes', 'Ja')
-
 	)
 );
 ?>

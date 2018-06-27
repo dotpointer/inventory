@@ -4,42 +4,68 @@
 (function() {
 	"use strict";
 
+	i.formatDate = (date) => {
+			const d = new Date(date);
 
-	i.formatDate = function(date) {
-			var d = new Date(date),
-			month = '' + (d.getMonth() + 1),
-			day = '' + d.getDate(),
-			year = d.getFullYear(),
-			a = [];
+			let	a = [];
+				day = '' + d.getDate(),
+				month = '' + (d.getMonth() + 1),
+				year = d.getFullYear();
 
 			if (month.length < 2) {
 				month = '0' + month;
 			}
+
 			if (day.length < 2) {
 				day = '0' + day;
 			}
 
 			a = [year, month, day];
 
-
 			return a.join('-');
 	};
 
+	// to translate texts
+	i.t = (s) => {
+		let found = false;
+		// are the translation texts available?
+		if (typeof i.msg !== "object") {
+			return s;
+		}
+
+		// walk the translation texts
+		Object.keys(i.msg).forEach((a) => {
+			if (
+				found === false &&
+				i != null &&
+				i.msg != null &&
+				i.msg[a] !== undefined &&
+				i.msg[a][0] !== undefined &&
+				i.msg[a][1] !== undefined &&
+				i.msg[a][0] === s
+			) {
+				found = i.msg[a][1];
+			}
+		});
+
+		if (found) {
+			return found;
+		}
+		return s;
+	};
+
 	jQuery.extend({
-		postJSON: function (url, data, callback) {
+		postJSON: (url, data, callback) => {
 			return jQuery.post(url, data, callback, "json");
 		}
 	});
 
-	$(window.document).ready(function() {
-
-		$('a.confirm').on('click', function(e) {
-
-			if (!window.confirm(i.msg.confirm)) {
+	$(window.document).ready(() => {
+		$('a.confirm').on('click', (e) => {
+			if (!window.confirm(i.t('Are you sure that you want to continue? This action cannot be reverted.'))) {
 				e.preventDefault();
 				return false;
 			}
-
 			return true;
 		});
 
@@ -47,7 +73,7 @@
 			case 'edit_item':
 
 				// when changing category
-				$('select[name="id_categories"]').change(function() {
+				$('select[name="id_categories"]').change(() => {
 
 					// is this a new category?
 					if ($(this).val() === '-1') {
@@ -62,7 +88,7 @@
 					}
 				});
 
-				$('#button_aquired_date,#button_disposed_date').click(function(e) {
+				$('#button_aquired_date,#button_disposed_date').click((e) => {
 
 					$(this).prev('input').val(
 						i.formatDate(
@@ -80,7 +106,7 @@
 					return false;
 				});
 
-				$('#button_material_100_cotton').click(function(e) {
+				$('#button_material_100_cotton').click((e) => {
 
 					$(this).prev('input').val(
 						'100% bomull'
@@ -90,30 +116,26 @@
 					return false;
 				});
 
-
-				$('#button_status_sale').click(function(e) {
+				$('#button_status_sale').click((e) => {
 					$(this).prev('select').val(2);
 					e.preventDefault();
 					return false;
 				});
 
-				$('#button_status_sold').click(function(e) {
+				$('#button_status_sold').click((e) => {
 					$(this).prev('select').val(3);
 					$('#button_disposed_date').click();
 					e.preventDefault();
 					return false;
 				});
 
-
-
-
 				$('input[name="title"]').focus();
 
 				break;
 			case 'edit_packlist':
 
-				$('#button_criterias_remove').click(function(e) {
-					$('#select_criterias_selected option:selected').each(function() {
+				$('#button_criterias_remove').click((e) => {
+					$('#select_criterias_selected option:selected').each(() => {
 						if (!$('#select_criterias_available option[value="' + this.value + '"]').size()) {
 							$('#select_criterias_available')
 								.append(
@@ -131,8 +153,8 @@
 					return false;
 				});
 
-				$('#button_criterias_add').click(function(e) {
-					$('#select_criterias_available option:selected').each(function() {
+				$('#button_criterias_add').click((e) => {
+					$('#select_criterias_available option:selected').each(() => {
 						// add it to the select box
 						if (!$('#select_criterias_selected option[value="' + this.value + '"]').size()) {
 							$('#select_criterias_selected')
@@ -165,11 +187,11 @@
 				break;
 			case 'index':
 
-				$('form.form_add_item_to_packlist').on('submit', function(e) {
+				$('form.form_add_item_to_packlist').on('submit', (e) => {
 					$.postJSON("?action=insert_update_relations_packlists_items&format=json", {
 						id_items: $(this).find('input[name="id_items"]').val(),
 						id_packlists: $(this).find('select:first').val()
-					}, function(data) {
+					}, (data) => {
 						// when done, show result list, forward result data
 						$(this).find('.status').remove();
 
@@ -178,17 +200,17 @@
 								.addClass('status')
 								.text('Tillagd')
 						);
-					}.bind(this));
+					});
 
 					e.preventDefault();
 					return false;
 				});
 
-				$('form.form_add_item_to_criteria').on('submit', function(e) {
+				$('form.form_add_item_to_criteria').on('submit', (e) => {
 					$.postJSON("?action=insert_update_relations_criterias_items&format=json", {
 						id_items: $(this).find('input[name="id_items"]').val(),
 						id_criterias: $(this).find('select:first').val()
-					}, function(data) {
+					}, (data) => {
 						// when done, show result list, forward result data
 						$(this).find('.status').remove();
 
@@ -197,7 +219,7 @@
 								.addClass('status')
 								.text('Tillagd')
 						);
-					}.bind(this));
+					});
 
 					e.preventDefault();
 					return false;
@@ -206,7 +228,7 @@
 				break;
 			case 'packlist':
 
-				$('table input[type="checkbox"]').on('change', function(e) {
+				$('table input[type="checkbox"]').on('change', (e) => {
 
 					if ($(this).prop('checked')) {
 						$(this).parent('td').removeClass('unpacked').addClass('packed');
@@ -232,10 +254,9 @@
 
 					e.preventDefault();
 					return false;
-
 				});
 
-				$('table select').on('change', function(e) {
+				$('table select').on('change', (e) => {
 					if ($(this).attr('data-packlist-item') === '0') {
 						$.getJSON(".", {
 							action: 'update_relations_packlists_items_inuse',
@@ -253,7 +274,7 @@
 					}
 				});
 
-				$('.edit_packlist_item').on('click', function(e) {
+				$('.edit_packlist_item').on('click', (e) => {
 					$('form input[name="title"]').val($(this).attr('data-title'));
 					$('form input[name="weight"]').val($(this).attr('data-weight'));
 					$('#span_id_packlist_items').text($(this).attr('data-id-packlist-items'));
@@ -262,9 +283,9 @@
 					return false;
 				});
 
-				$('#a_form_packlist_item_reset').click(function(e) {
+				$('#a_form_packlist_item_reset').click((e) => {
 					$('#form_edit_packlist_item')[0].reset();
-					$('#span_id_packlist_items').text('Nytt objekt');
+					$('#span_id_packlist_items').text(i.t('New object'));
 					$('form input[name="title"]').val('');
 					$('form input[name="weight"]').val('');
 					$('form input[name="id_packlist_items"]').val(0);
@@ -273,27 +294,25 @@
 					return false;
 				});
 
-				$('#form_update_packlist_notes').on('submit', function(e) {
+				$('#form_update_packlist_notes').on('submit', (e) => {
 					$.postJSON("?action=update_packlist_notes&format=json", {
 						id_packlists: $(this).find('input[name="id_packlists"]').val(),
 						notes: $(this).find('textarea[name="notes"]').val()
-					}, function(data) {
+					}, (data) => {
 						// when done, show result list, forward result data
 						$(this).find('.status').remove();
 
 						$(this).find('input[type="submit"]:first').after(
 							$('<span>')
 								.addClass('status')
-								.text('Sparat')
+								.text(i.t('Saved'))
 						);
-					}.bind(this));
+					});
 					e.preventDefault();
 					return false;
 				});
 
 				break;
-
 		}
-
 	});
 }());
