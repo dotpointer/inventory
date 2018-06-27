@@ -7,7 +7,7 @@
 	i.formatDate = (date) => {
 			const d = new Date(date);
 
-			let	a = [];
+			let	a = [],
 				day = '' + d.getDate(),
 				month = '' + (d.getMonth() + 1),
 				year = d.getFullYear();
@@ -73,10 +73,9 @@
 			case 'edit_item':
 
 				// when changing category
-				$('select[name="id_categories"]').change(() => {
-
+				$('select[name="id_categories"]').change((e) => {
 					// is this a new category?
-					if ($(this).val() === '-1') {
+					if ($(e.currentTarget).val() === '-1') {
 						// then show new category field
 						$('input[name="category"]').show();
 						$('input[name="category"]').attr('disabled', false);
@@ -90,14 +89,14 @@
 
 				$('#button_aquired_date,#button_disposed_date').click((e) => {
 
-					$(this).prev('input').val(
+					$(e.currentTarget).prev('input').val(
 						i.formatDate(
 							new Date(new Date().getTime() + i.time_diff)
 						)
 					);
 
 					// is this disposed button and the own status is own or own - sell?
-					if ($(this).attr('id') === 'button_disposed_date' && ($('select[name="status"').val() === '1' || $('select[name="status"').val() === '2')) {
+					if ($(e.currentTarget).attr('id') === 'button_disposed_date' && ($('select[name="status"').val() === '1' || $('select[name="status"').val() === '2')) {
 						// then change own status to sold
 						$('select[name="status"').val(3);
 					}
@@ -107,8 +106,7 @@
 				});
 
 				$('#button_material_100_cotton').click((e) => {
-
-					$(this).prev('input').val(
+					$(e.currentTarget).prev('input').val(
 						'100% bomull'
 					);
 
@@ -117,13 +115,13 @@
 				});
 
 				$('#button_status_sale').click((e) => {
-					$(this).prev('select').val(2);
+					$(e.currentTarget).prev('select').val(2);
 					e.preventDefault();
 					return false;
 				});
 
 				$('#button_status_sold').click((e) => {
-					$(this).prev('select').val(3);
+					$(e.currentTarget).prev('select').val(3);
 					$('#button_disposed_date').click();
 					e.preventDefault();
 					return false;
@@ -135,18 +133,19 @@
 			case 'edit_packlist':
 
 				$('#button_criterias_remove').click((e) => {
-					$('#select_criterias_selected option:selected').each(() => {
-						if (!$('#select_criterias_available option[value="' + this.value + '"]').size()) {
+					$('#select_criterias_selected option:selected').each((index, element) => {
+
+						if (!$('#select_criterias_available option[value="' + $(element).value + '"]').length) {
 							$('#select_criterias_available')
 								.append(
 									$('<option>')
-										.val(this.value)
-										.text(this.text)
+										.val($(element).attr('value'))
+										.text($(element).text())
 								);
 						}
 
-						$('#hidden_selected_criterias input[value="' + this.value + '"]').remove();
-						$(this).remove();
+						$('#hidden_selected_criterias input[value="' + $(element).attr('value') + '"]').remove();
+						$(element).remove();
 					});
 
 					e.preventDefault();
@@ -154,30 +153,31 @@
 				});
 
 				$('#button_criterias_add').click((e) => {
-					$('#select_criterias_available option:selected').each(() => {
+					e.preventDefault();
+					$('#select_criterias_available option:selected').each((index, element) => {
 						// add it to the select box
-						if (!$('#select_criterias_selected option[value="' + this.value + '"]').size()) {
+						if (!$('#select_criterias_selected option[value="' + $(element).attr('value') + '"]').length) {
 							$('#select_criterias_selected')
 								.append(
 									$('<option>')
-										.val(this.value)
-										.text(this.text)
+										.val($(element).attr('value'))
+										.text($(element).text())
 								);
 						}
 
 						// add the hidden input
-						if (!$('#hidden_selected_criterias input[value="' + this.value + '"]').size()) {
+						if (!$('#hidden_selected_criterias input[value="' + $(element).attr('value') + '"]').length) {
 							$('#hidden_selected_criterias').append(
 								$('<input/>')
 									.attr({
 										name: 'id_criterias[]',
 										type: 'hidden'
 									})
-									.val(this.value)
+									.val($(element).attr('value'))
 							);
 						}
 
-						$(this).remove();
+						$(element).remove();
 					});
 
 					e.preventDefault();

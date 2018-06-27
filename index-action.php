@@ -29,75 +29,82 @@
 # 2018-06-24 17:58:00 - adding local login
 # 2018-06-25 18:58:00 - adding local user management and multi user support
 # 2018-06-26 16:09:00 - adding error handling
+# 2018-06-27 18:11:00 - adding password salt check
 
 if (!isset($action)) die();
 
 # is the editusers setup array set
 if (isset($editusers)) {
-	# walk this array
-	foreach ($editusers as $user) {
-		if (!isset($user['username']) || !isset($user['password'])) {
-			continue;
-		}
 
-		if (!validate_user($user['username'])) {
-			$errors[] = t('Username in editusers array is too short, too long or contain invalid characters.');
-			break;
-		}
+	if (strlen($password_salt) > 15) {
+		# walk this array
+		foreach ($editusers as $user) {
+			if (!isset($user['username']) || !isset($user['password'])) {
+				continue;
+			}
 
-		if (!validate_pass($user['password'])) {
-			$errors[] = t('Password in editusers array is too short or does not contain letters or digits.');
-			break;
-		}
-
-		$sql = '
-			SELECT
-				*
-			FROM
-				users
-			WHERE
-				username="'.dbres($link, $user['username']).'" OR
-				nickname="'.dbres($link, $user['username']).'"
-			';
-		$result = db_query($link, $sql);
-
-		$iu = array(
-			'username' => $user['username'],
-			'updated' => date('Y-m-d H:i:s')
-		);
-
-		if (!count($result)) {
-			$iu['created'] = date('Y-m-d H:i:s');
-			$iu = dbpia($link, 	$iu);
-			# set password separately
-			$iu['password'] = 'ENCRYPT("'.dbres($link, $user['password']).'", "'.dbres($link, $password_salt).'")';
-			$sql = '
-				INSERT INTO users (
-					'.implode(',', array_keys($iu)).'
-				) VALUES(
-					'.implode(',', $iu).'
-				)';
-			db_query($link, $sql);
-		} else {
-			# make sure visum users are not tampered with
-			if ($result[0]['id_visum'] !== '0') {
-				$errors[] = t('A username in editusers array matches a Visum user. Cannot edit Visum users with the editusers array.');
+			if (!validate_user($user['username'])) {
+				$errors[] = t('Username in editusers array is too short, too long or contain invalid characters.');
 				break;
 			}
-			$iu['updated'] = date('Y-m-d H:i:s');
-			$iu = dbpua($link, $iu);
-			$iu['password'] = 'password=ENCRYPT("'.dbres($link, $user['password']).'", "'.dbres($link, $password_salt).'")';
+
+			if (!validate_pass($user['password'])) {
+				$errors[] = t('Password in editusers array is too short or does not contain letters or digits.');
+				break;
+			}
+
 			$sql = '
-				UPDATE
+				SELECT
+					*
+				FROM
 					users
-				SET
-					'.implode($iu, ',').'
 				WHERE
-					id="'.dbres($link, $result[0]['id']).'"
+					username="'.dbres($link, $user['username']).'" OR
+					nickname="'.dbres($link, $user['username']).'"
 				';
-			db_query($link, $sql);
+			$result = db_query($link, $sql);
+
+			$iu = array(
+				'username' => $user['username'],
+				'updated' => date('Y-m-d H:i:s')
+			);
+
+			if (!count($result)) {
+				$iu['created'] = date('Y-m-d H:i:s');
+				$iu = dbpia($link, 	$iu);
+				# set password separately
+				$iu['password'] = 'ENCRYPT("'.dbres($link, $user['password']).'", "'.dbres($link, $password_salt).'")';
+				$sql = '
+					INSERT INTO users (
+						'.implode(',', array_keys($iu)).'
+					) VALUES(
+						'.implode(',', $iu).'
+					)';
+				db_query($link, $sql);
+			} else {
+				# make sure visum users are not tampered with
+				if ($result[0]['id_visum'] !== '0') {
+					$errors[] = t('A username in editusers array matches a Visum user. Cannot edit Visum users with the editusers array.');
+					break;
+				}
+				$iu['updated'] = date('Y-m-d H:i:s');
+				$iu = dbpua($link, $iu);
+				$iu['password'] = 'password=ENCRYPT("'.dbres($link, $user['password']).'", "'.dbres($link, $password_salt).'")';
+				$sql = '
+					UPDATE
+						users
+					SET
+						'.implode($iu, ',').'
+					WHERE
+						id="'.dbres($link, $result[0]['id']).'"
+					';
+				db_query($link, $sql);
+			}
+			# echo $sql."\n";
 		}
-		# echo $sql."\n";
+		$errors[] = t('Users noted in the user editing array has been created and updated. Please comment out the array in the setup file when done with it, otherwise this will continue to override user settings made on the site.');
+	} else {
+		$errors[] = t('The password salt text is too short, please set a longer one in the setup file.');
 	}
 }
 

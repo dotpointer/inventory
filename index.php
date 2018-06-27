@@ -49,6 +49,7 @@
 	# 2018-06-25 18:58:00 - adding local user management and multi user support
 	# 2018-06-26 16:04:00 - adding error handling
 	# 2018-06-27 14:51:00 - adding translations json array
+	# 2018-06-27 18:14:00 - updating jquery from version 2.1.1 to 3.3.1, removing editusers array check, updating formatting
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -124,7 +125,7 @@
 	<title><?php echo t('Inventory') ?><?php echo is_logged_in() && isset($item_amount[0], $item_amount[0]['amount']) ? ' - '.$item_amount[0]['amount'].' st' : ''?></title>
 	<link rel="stylesheet" href="include/style.css" type="text/css" media="screen" />
 
-	<script type="text/javascript" src="include/jquery-2.1.1.min.js"></script>
+	<script type="text/javascript" src="include/jquery-3.3.1.min.js"></script>
 	<script type="text/javascript">
 		var
 			i = {
@@ -139,15 +140,6 @@
 </head>
 <body>
 <?php
-	if (isset($editusers)) {
-?>
-	<p>
-		<b><?php echo t('Note!') ?></b>
-		<?php echo t('The user editing array is still defined. Please comment this out in the setup file, otherwise this will continue to override user settings made on the site.'); ?>
-	</p>
-<?php
-	}
-
 	if (is_logged_in()) {
 ?>
 	<ul class="menu">
@@ -353,7 +345,8 @@
 			</div>
 			<div class="row">
 				<label for="weight"><?php echo t('Weight') ?>:</label>
-				<input class="text" type="text" name="weight" value="<?php echo isset($item['weight']) ? $item['weight'] : ''?>">g
+				<input class="text" type="text" name="weight" value="<?php echo isset($item['weight']) ? $item['weight'] : ''?>">
+				<span class="unit">g</span>
 			</div>
 			<div class="row">
 				<label for="source"><?php echo t('Got from') ?>:</label>
@@ -369,7 +362,11 @@
 			</div>
 			<div class="row">
 				<label for="file"><?php echo t('JPEG image') ?></label>
+<?php		if (!file_exists(MAGICK_PATH.'convert')) { ?>
 				<input class="file" type="file" name="file">
+<?php		} else { ?>
+				<span class="value"><?php echo t('ImageMagick is not installed, please install it to enable image uploads.'); ?></span>
+<?php		} ?>
 <?php		if (isset($item['id_files']) && file_exists(FILE_DIR.$item['id_files'].'.jpg')) { ?>
 				<a href="?view=file&amp;id_files=<?php echo $item['id_files']?>"><img src="?view=file&amp;type=thumbnail&amp;id_files=<?php echo $item['id_files']?>"></a><br><br>
 				<input type="hidden" name="id_files" value="<?php echo isset($item['price']) ? $item['id_files'] : ''?>">

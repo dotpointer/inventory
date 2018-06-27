@@ -12,6 +12,7 @@
 # 2018-06-25 18:56:00 - adding missing texts
 # 2018-06-26 16:09:00 - adding error handling texts
 # 2018-06-27 14:50:00 - sorting and adding some texts
+# 2018-06-27 18:10:00 - adding texts about imagemagick and setup
 
 # store this into translations
 $translations['languages'][] = array(
@@ -99,6 +100,7 @@ $translations['languages'][] = array(
 		array('has relations, remove them first.', 'har relationer, ta bort dem först.'),
 		array('hits', 'träffar'),
 		array('Image','Bild'),
+		array('ImageMagick is not installed, please install it to enable image uploads.', 'ImageMagick är inte installerad, installera det för att aktivera bilduppladdningar.'),
 		array('Inactive','Inaktiv'),
 		array('In use', 'Används'),
 		array('Invalid file format.'),
@@ -114,6 +116,7 @@ $translations['languages'][] = array(
 		array('Location', 'Plats'),
 		array('Locations', 'Platser'),
 		array('Location with id #', 'Plats med id #'),
+		array('Login with Visum here.'),
 		array('Logout', 'Logga ut'),
 		array('Manage','Hantera'),
 		array('Material', 'Material'),
@@ -162,8 +165,9 @@ $translations['languages'][] = array(
 		array('Status', 'Status'),
 		array('Summary', 'Summering'),
 		array('The following is missing in the packlist', 'Följande saknas i packlistan'),
+		array('The password salt text is too short, please set a longer one in the setup file.', 'Lösenordssalt-texten är för kort. Ange en längre i inställningsfilen.'),
 		array('The search resulted in', 'Sökningen resulterade i'),
-		array('The user editing array is still defined. Please comment this out in the setup file, otherwise this will continue to override user settings made on the site.', 'Användarredigerings-arrayen är fortfarande aktiv i inställningsfilen. Kommentera ut denna annars fortsätter den att skriva över förändringar gjorda på sidan.'),
+		array('Users noted in the user editing array has been created and updated. Please comment out the array in the setup file when done with it, otherwise this will continue to override user settings made on the site.', 'Användare i editusers-arrayen har skapats och uppdaterats. Kommentera ut arrayen när arbetet med den är klart annars fortsätter den att skriva över förändringar gjorda på sidan.'),
 		array('This is a Visum user, it cannot be edited locally.', 'Detta är en Visum-användare, den kan inte redigeras lokalt.'),
 		array('Tillagd', 'Added'),
 		array('Title', 'Titel'),

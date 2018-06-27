@@ -32,12 +32,22 @@
 	# 2018-06-24 17:57:00 - adding local login
 	# 2018-06-25 18:56:00 - minor html correction
 	# 2018-06-26 16:03:00 - adding error handling
+	# 2018-06-27 18:09:00 - bugfix, database name was set in the file, adding setup info
 
 	define('SITE_SHORTNAME', 'inventory');
-	define('DATABASE_NAME', 'inventory');
+
+	if (!file_exists(dirname(__FILE__).'/setup.php')) {
+		header('Content-Type: text/plain');
+?>
+	Welcome. It appears that the setup file in include/setup.php is not present. Please go to the include
+	directory and copy the example file setup-example.php to setup.php. Then edit the setup.php to fit your
+	system setup. Thanks for using this software.
+<?php
+		die();
+	}
+
 	require_once('setup.php');
 	require_once('base3.php');
-
 	/*
 		1 = own
 		2 = sold
@@ -190,10 +200,15 @@
 			<input class="submit" type="submit" name="submit" value="<?php echo t('Save') ?>">
 		</fieldset>
 	</form>
+<?php
+		if (defined('ID_VISUM') && constant('ID_VISUM') !== false) {
+?>
 	<p class="login">
-		<a href="http://www.<?php echo BASE_DOMAINNAME?>/?section=visum&id_sites=<?php echo ID_VISUM?>">Logga in med Visum här.<a/>
+		<a href="http://www.<?php echo BASE_DOMAINNAME?>/?section=visum&id_sites=<?php echo ID_VISUM?>"><?php echo t('Login with Visum here.') ?><a/>
 	</p>
 <?php
+		}
+
 		return true;
 	}
 

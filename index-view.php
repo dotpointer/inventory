@@ -31,6 +31,7 @@
 # 2018-05-04 23:58:00 - adding risk materials
 # 2018-06-25 18:58:00 - adding local user management and multi user support
 # 2018-06-26 16:04:00 - adding error handling
+# 2018-06-27 18:12:00 - bugfixes in sql queries
 
 if (!isset($view)) die();
 
@@ -99,7 +100,7 @@ switch ($view) {
 				FROM
 					criterias
 				WHERE
-					id="'.dbres($link, $id_criterias).'"
+					id="'.dbres($link, $id_criterias).'" AND
 					id_users="'.dbres($link, get_logged_in_user('id')).'"
 				');
 			# was there any matching items?
@@ -217,7 +218,7 @@ switch ($view) {
 					packlists
 				WHERE
 					id="'.dbres($link, $id_packlists).'" AND
-					d_users="'.dbres($link, get_logged_in_user('id')).'"
+					id_users="'.dbres($link, get_logged_in_user('id')).'"
 			');
 			# was there any matching items?
 			if (count($packlists)) {
