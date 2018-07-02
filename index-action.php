@@ -30,6 +30,7 @@
 # 2018-06-25 18:58:00 - adding local user management and multi user support
 # 2018-06-26 16:09:00 - adding error handling
 # 2018-06-27 18:11:00 - adding password salt check
+# 2018-07-02 19:31:00 - bugfix, image upload was not checked
 
 if (!isset($action)) die();
 
@@ -362,166 +363,163 @@ switch ($action) {
    		# Undefined | Multiple Files | $_FILES Corruption Attack
 		# If this request falls under any of them, treat it invalid.
 		if (
-			!isset($_FILES['file']['error']) ||
-			is_array($_FILES['file']['error'])
+			isset($_FILES['file']['error'])
+			&& !is_array($_FILES['file']['error'])
 		) {
-			$errors[] = t('Invalid parameters.');
-			$view = 'edit_location';
-			break;
-		}
 
-		# check error value
-		switch ($_FILES['file']['error']) {
-			case UPLOAD_ERR_OK:
+			# check error value
+			switch ($_FILES['file']['error']) {
+				case UPLOAD_ERR_OK:
 
-				# is there an image supplied?
-				$id_files = (int)$id_files;
+					# is there an image supplied?
+					$id_files = (int)$id_files;
 
-				# filesize check
-				if ($_FILES['file']['size'] > 100000000) {
-					$errors[] = t('Exceeded filesize limit.');
-					$view = 'edit_location';
-					break;
-				}
+					# filesize check
+					if ($_FILES['file']['size'] > 100000000) {
+						$errors[] = t('Exceeded filesize limit.');
+						$view = 'edit_location';
+						break;
+					}
 
-				# mime check - do not trust $_FILES mime value
-				$finfo = new finfo(FILEINFO_MIME_TYPE);
-				if (false === $ext = array_search(
-					$finfo->file($_FILES['file']['tmp_name']),
-					array(
-						'jpg' => 'image/jpeg'
-						#,
-						#'png' => 'image/png',
-						#'gif' => 'image/gif',
-					),
-					true
-				)) {
-					$errors[] = t('Invalid file format.');
-					$view = 'edit_location';
-					break;
-				}
+					# mime check - do not trust $_FILES mime value
+					$finfo = new finfo(FILEINFO_MIME_TYPE);
+					if (false === $ext = array_search(
+						$finfo->file($_FILES['file']['tmp_name']),
+						array(
+							'jpg' => 'image/jpeg'
+							#,
+							#'png' => 'image/png',
+							#'gif' => 'image/gif',
+						),
+						true
+					)) {
+						$errors[] = t('Invalid file format.');
+						$view = 'edit_location';
+						break;
+					}
 
-				# missing file dir?
-				if (
-					!is_dir(FILE_DIR)
-					|| trim(FILE_DIR) === '/'
-					|| substr(FILE_DIR, -1,1) !== '/'
-				) {
-					$errors[] = t('Fatal, file directory does not exist').': '.FILE_DIR;
-					$view = 'edit_location';
-					break;
-				}
+					# missing file dir?
+					if (
+						!is_dir(FILE_DIR)
+						|| trim(FILE_DIR) === '/'
+						|| substr(FILE_DIR, -1,1) !== '/'
+					) {
+						$errors[] = t('Fatal, file directory does not exist').': '.FILE_DIR;
+						$view = 'edit_location';
+						break;
+					}
 
-				# is there no files id supplied?
-				if (!$id_files) {
-					# then insert a new file id
-					$iu = array(
-						'created' => date('Y-m-d H:i:s'),
-						'mime' => mime_content_type($_FILES['file']['tmp_name'])
-					);
-					$iu = dbpia($link, $iu);
+					# is there no files id supplied?
+					if (!$id_files) {
+						# then insert a new file id
+						$iu = array(
+							'created' => date('Y-m-d H:i:s'),
+							'mime' => mime_content_type($_FILES['file']['tmp_name'])
+						);
+						$iu = dbpia($link, $iu);
+						$sql = '
+							INSERT INTO files (
+								'.implode(',', array_keys($iu)).'
+							) VALUES(
+								'.implode(',', $iu).'
+							)';
+						$r_insert_files = db_query($link, $sql);
+						$id_files = db_insert_id($link);
+					}
+
+					# update the file location
 					$sql = '
-						INSERT INTO files (
-							'.implode(',', array_keys($iu)).'
-						) VALUES(
-							'.implode(',', $iu).'
-						)';
-					$r_insert_files = db_query($link, $sql);
-					$id_files = db_insert_id($link);
-				}
+						UPDATE
+							locations
+						SET
+							id_files="'.dbres($link, $id_files).'"
+						WHERE
+							id="'.dbres($link, $id_locations).'"
+						';
+					$r_update_locations = db_query($link, $sql);
 
-				# update the file location
-				$sql = '
-					UPDATE
-						locations
-					SET
-						id_files="'.dbres($link, $id_files).'"
-					WHERE
-						id="'.dbres($link, $id_locations).'"
-					';
-				$r_update_locations = db_query($link, $sql);
+					# set the target file path
+					$targetfile = FILE_DIR.$id_files.'.jpg';
 
-				# set the target file path
-				$targetfile = FILE_DIR.$id_files.'.jpg';
+					# make sure it does not exist
+					if (file_exists($targetfile)) {
+						if (!unlink($targetfile)) {
+							$errors[] = t('Failed deleting').' '.$targetfile;
+							$view = 'edit_location';
+							break;
 
-				# make sure it does not exist
-				if (file_exists($targetfile)) {
-					if (!unlink($targetfile)) {
-						$errors[] = t('Failed deleting').' '.$targetfile;
-						$view = 'edit_location';
-						break;
-
+						}
 					}
-				}
 
-				if (!move_uploaded_file(
-					$_FILES['file']['tmp_name'],
-					$targetfile
-				)) {
-					$errors[] = t('Failed to move uploaded file.');
-					$view = 'edit_location';
-					break;
-				}
-
-				# missing thumbnail dir?
-				if (
-					!is_dir(THUMBNAIL_DIR)
-					|| trim(THUMBNAIL_DIR) === '/'
-					|| substr(THUMBNAIL_DIR, -1,1) !== '/'
-				) {
-					$errors[] = t('Fatal, thumbnail directory does not exist').': '.THUMBNAIL_DIR;
-					$view = 'edit_location';
-					break;
-				}
-
-				# make a thumbnail of it, if it is not already there
-
-				# set the target file path
-				$thumbfile = THUMBNAIL_DIR.$id_files.'.jpg';
-
-				# make sure it does not exist
-				if (file_exists($thumbfile)) {
-					if (!unlink($thumbfile)) {
-						$errors[] = t('Failed deleting').' '.$thumbfile;
+					if (!move_uploaded_file(
+						$_FILES['file']['tmp_name'],
+						$targetfile
+					)) {
+						$errors[] = t('Failed to move uploaded file.');
 						$view = 'edit_location';
 						break;
 					}
-				}
 
-				$s = trim(exec('ps ax|grep convert|grep -v grep'));
-				if (strlen($s)) return false;
+					# missing thumbnail dir?
+					if (
+						!is_dir(THUMBNAIL_DIR)
+						|| trim(THUMBNAIL_DIR) === '/'
+						|| substr(THUMBNAIL_DIR, -1,1) !== '/'
+					) {
+						$errors[] = t('Fatal, thumbnail directory does not exist').': '.THUMBNAIL_DIR;
+						$view = 'edit_location';
+						break;
+					}
 
-				# 40 funkar ok, himlar blir visserligen pixlade men inte så mkt
-				# 30 är gränsfall, det är randigt om man kollar noga
-				# 25 är himlar synbart randiga
-				# 10-15 pajar ansikten på 160x120
-				# 5 är fruktansvärt
+					# make a thumbnail of it, if it is not already there
 
-				$return2 = exec(MAGICK_PATH.'convert '.escapeshellarg($targetfile).' -quality 75 -auto-orient -strip -sample 320x240 '.escapeshellarg($thumbfile), $output, $return);
+					# set the target file path
+					$thumbfile = THUMBNAIL_DIR.$id_files.'.jpg';
 
-				if (!file_exists($thumbfile)) {
-					$errors[] = t('Failed creating thumbnail').': '.$thumbfile.'. Command output was: '.implode("\n", $output).$return2.$return;
+					# make sure it does not exist
+					if (file_exists($thumbfile)) {
+						if (!unlink($thumbfile)) {
+							$errors[] = t('Failed deleting').' '.$thumbfile;
+							$view = 'edit_location';
+							break;
+						}
+					}
+
+					$s = trim(exec('ps ax|grep convert|grep -v grep'));
+					if (strlen($s)) return false;
+
+					# 40 funkar ok, himlar blir visserligen pixlade men inte så mkt
+					# 30 är gränsfall, det är randigt om man kollar noga
+					# 25 är himlar synbart randiga
+					# 10-15 pajar ansikten på 160x120
+					# 5 är fruktansvärt
+
+					$return2 = exec(MAGICK_PATH.'convert '.escapeshellarg($targetfile).' -quality 75 -auto-orient -strip -sample 320x240 '.escapeshellarg($thumbfile), $output, $return);
+
+					if (!file_exists($thumbfile)) {
+						$errors[] = t('Failed creating thumbnail').': '.$thumbfile.'. Command output was: '.implode("\n", $output).$return2.$return;
+						$view = 'edit_location';
+						break;
+					}
+					# upload complete
+
+					break;
+				case UPLOAD_ERR_NO_FILE:
+					# no file uploaded, that is ok
+					break;
+				case UPLOAD_ERR_INI_SIZE:
+					$errors[] = t('Exceeded filesize limit in ini setting.');
 					$view = 'edit_location';
 					break;
-				}
-				# upload complete
-
-				break;
-			case UPLOAD_ERR_NO_FILE:
-				# no file uploaded, that is ok
-				break;
-			case UPLOAD_ERR_INI_SIZE:
-				$errors[] = t('Exceeded filesize limit in ini setting.');
-				$view = 'edit_location';
-				break;
-			case UPLOAD_ERR_FORM_SIZE:
-				$errors[] = t('Exceeded filesize limit in form.');
-				$view = 'edit_location';
-				break;
-			default:
-				$errors[] = t('Unknown error.');
-				$view = 'edit_location';
-				break;
+				case UPLOAD_ERR_FORM_SIZE:
+					$errors[] = t('Exceeded filesize limit in form.');
+					$view = 'edit_location';
+					break;
+				default:
+					$errors[] = t('Unknown error.');
+					$view = 'edit_location';
+					break;
+			}
 		}
 
 		break;
@@ -919,174 +917,179 @@ switch ($action) {
 
 		# --- end of location
 
-	   # Undefined | Multiple Files | $_FILES Corruption Attack
+		# Undefined | Multiple Files | $_FILES Corruption Attack
 		# If this request falls under any of them, treat it invalid.
 		if (
-			!isset($_FILES['file']['error']) ||
-			is_array($_FILES['file']['error'])
+			isset($_FILES['file']['error']) &&
+			!is_array($_FILES['file']['error'])
 		) {
-			$errors[] = t('Invalid parameters.');
-			$view = 'edit_item';
-			break;
-		}
 
-		# check error value
-		switch ($_FILES['file']['error']) {
-			case UPLOAD_ERR_OK:
+			# check error value
+			switch ($_FILES['file']['error']) {
+				case UPLOAD_ERR_OK:
 
-				# is there an image supplied?
-				$id_files = (int)$id_files;
+					# is there an image supplied?
+					$id_files = (int)$id_files;
 
-				# filesize check
-				if ($_FILES['file']['size'] > 100000000) {
-					$errors[] = t('Exceeded filesize limit.');
-					$view = 'edit_item';
-					break;
-				}
+					# filesize check
+					if ($_FILES['file']['size'] > 100000000) {
+						$errors[] = t('Exceeded filesize limit.');
+						$view = 'edit_item';
+						break;
+					}
 
-				# mime check - do not trust $_FILES mime value
-				$finfo = new finfo(FILEINFO_MIME_TYPE);
-				if (false === $ext = array_search(
-					$finfo->file($_FILES['file']['tmp_name']),
-					array(
-						'jpg' => 'image/jpeg'
-						#,
-						#'png' => 'image/png',
-						#'gif' => 'image/gif',
-					),
-					true
-				)) {
-					$errors[] = t('Invalid file format.');
-					$view = 'edit_item';
-					break;
-				}
+					# mime check - do not trust $_FILES mime value
+					$finfo = new finfo(FILEINFO_MIME_TYPE);
+					if (false === $ext = array_search(
+						$finfo->file($_FILES['file']['tmp_name']),
+						array(
+							'jpg' => 'image/jpeg'
+							#,
+							#'png' => 'image/png',
+							#'gif' => 'image/gif',
+						),
+						true
+					)) {
+						$errors[] = t('Invalid file format.');
+						$view = 'edit_item';
+						break;
+					}
 
-				# missing file dir?
-				if (
-					!is_dir(FILE_DIR)
-					|| trim(FILE_DIR) === '/'
-					|| substr(FILE_DIR, -1,1) !== '/'
-				) {
-					$errors[] = t('Fatal, file directory does not exist').': '.FILE_DIR;
-					$view = 'edit_item';
-					break;
-				}
+					# missing file dir?
+					if (
+						!is_dir(FILE_DIR)
+						|| trim(FILE_DIR) === '/'
+						|| substr(FILE_DIR, -1,1) !== '/'
+					) {
+						$errors[] = t('Fatal, file directory does not exist').': '.FILE_DIR;
+						$view = 'edit_item';
+						break;
+					}
 
-				# is there no files id supplied?
-				if (!$id_files) {
-					# then insert a new file id
-					$iu = array(
-						'created' => date('Y-m-d H:i:s'),
-						'mime' => mime_content_type($_FILES['file']['tmp_name'])
-					);
-					$iu = dbpia($link, $iu);
+					# is there no files id supplied?
+					if (!$id_files) {
+						# then insert a new file id
+						$iu = array(
+							'created' => date('Y-m-d H:i:s'),
+							'mime' => mime_content_type($_FILES['file']['tmp_name']),
+							'id_users' => get_logged_in_user('id')
+						);
+						$iu = dbpia($link, $iu);
+						$sql = '
+							INSERT INTO files (
+								'.implode(',', array_keys($iu)).'
+							) VALUES(
+								'.implode(',', $iu).'
+							)';
+						$r_insert_files = db_query($link, $sql);
+						$id_files = db_insert_id($link);
+					}
+
+					# update the file location
 					$sql = '
-						INSERT INTO files (
-							'.implode(',', array_keys($iu)).'
-						) VALUES(
-							'.implode(',', $iu).'
-						)';
-					$r_insert_files = db_query($link, $sql);
-					$id_files = db_insert_id($link);
-				}
+						UPDATE
+							items
+						SET
+							id_files="'.dbres($link, $id_files).'"
+						WHERE
+							id="'.dbres($link, $id_items).'"
+						';
+					$r_update_items = db_query($link, $sql);
 
-				# update the file location
-				$sql = '
-					UPDATE
-						items
-					SET
-						id_files="'.dbres($link, $id_files).'"
-					WHERE
-						id="'.dbres($link, $id_items).'"
-					';
-				$r_update_items = db_query($link, $sql);
+					# set the target file path
+					# $targetfile = FILE_DIR.$id_items.'.jpg';
+					$targetfile = FILE_DIR.$id_files.'.jpg';
 
-				# set the target file path
-				# $targetfile = FILE_DIR.$id_items.'.jpg';
-				$targetfile = FILE_DIR.$id_files.'.jpg';
+					# make sure it does not exist
+					if (file_exists($targetfile)) {
+						if (!unlink($targetfile)) {
+							$errors[] = t('Failed deleting').' '.$targetfile;
+							$view = 'edit_item';
+							break;
+						}
+					}
 
-				# make sure it does not exist
-				if (file_exists($targetfile)) {
-					if (!unlink($targetfile)) {
-						$errors[] = t('Failed deleting').' '.$targetfile;
+					if (!move_uploaded_file(
+						$_FILES['file']['tmp_name'],
+						$targetfile
+					)) {
+						$errors[] = t('Failed to move uploaded file.');
 						$view = 'edit_item';
 						break;
 					}
-				}
 
-				if (!move_uploaded_file(
-					$_FILES['file']['tmp_name'],
-					$targetfile
-				)) {
-					$errors[] = t('Failed to move uploaded file.');
-					$view = 'edit_item';
-					break;
-				}
-
-				# missing thumbnail dir?
-				if (
-					!is_dir(THUMBNAIL_DIR)
-					|| trim(THUMBNAIL_DIR) === '/'
-					|| substr(THUMBNAIL_DIR, -1,1) !== '/'
-				) {
-					$errors[] = t('Fatal, thumbnail directory does not exist').': '.THUMBNAIL_DIR;
-					$view = 'edit_item';
-					break;
-				}
-
-				# make a thumbnail of it, if it is not already there
-
-				# set the target file path
-				$thumbfile = THUMBNAIL_DIR.$id_files.'.jpg';
-
-				# make sure it does not exist
-				if (file_exists($thumbfile)) {
-					if (!unlink($thumbfile)) {
-						$errors[] = t('Failed deleting').' '.$thumbfile;
+					# missing thumbnail dir?
+					if (
+						!is_dir(THUMBNAIL_DIR)
+						|| trim(THUMBNAIL_DIR) === '/'
+						|| substr(THUMBNAIL_DIR, -1,1) !== '/'
+					) {
+						$errors[] = t('Fatal, thumbnail directory does not exist').': '.THUMBNAIL_DIR;
 						$view = 'edit_item';
 						break;
 					}
-				}
 
-				$s = trim(exec('ps ax|grep convert|grep -v grep'));
-				if (strlen($s)) {
-					$errors[] = t('A image conversion is already in progress.');
+					# make a thumbnail of it, if it is not already there
+
+					# set the target file path
+					$thumbfile = THUMBNAIL_DIR.$id_files.'.jpg';
+
+					# make sure it does not exist
+					if (file_exists($thumbfile)) {
+						if (!unlink($thumbfile)) {
+							$errors[] = t('Failed deleting').' '.$thumbfile;
+							$view = 'edit_item';
+							break;
+						}
+					}
+
+					$s = trim(exec('ps ax|grep convert|grep -v grep'));
+					if (strlen($s)) {
+						$errors[] = t('A image conversion is already in progress.');
+						$view = 'edit_item';
+						break;
+					}
+
+					# 40 funkar ok, himlar blir visserligen pixlade men inte så mkt
+					# 30 är gränsfall, det är randigt om man kollar noga
+					# 25 är himlar synbart randiga
+					# 10-15 pajar ansikten på 160x120
+					# 5 är fruktansvärt
+
+					unset ($c, $o, $r);
+					$c = MAGICK_PATH.'convert '.escapeshellarg($targetfile).' -quality 75 -auto-orient -strip -sample 320x240 '.escapeshellarg($thumbfile);
+					exec($c, $o, $r);
+					if ($r !== 0) {
+						$errors[] = t('Failed creating thumbnail').': '.$thumbfile.'. Command output was: '.implode("\n", $o).' ('.$r.')';
+						$view = 'edit_item';
+						break;
+					}
+
+					if (!file_exists($thumbfile)) {
+						$errors[] = t('Failed creating thumbnail').': '.$thumbfile.'. Command output was: '.implode("\n", $o).' ('.$r.')';
+						$view = 'edit_item';
+						break;
+					}
+					# upload complete
+
+					break;
+				case UPLOAD_ERR_NO_FILE:
+					# no file uploaded, that is ok
+					break;
+				case UPLOAD_ERR_INI_SIZE:
+					$errors[] = t('Exceeded filesize limit in ini setting.');
 					$view = 'edit_item';
 					break;
-				}
-
-				# 40 funkar ok, himlar blir visserligen pixlade men inte så mkt
-				# 30 är gränsfall, det är randigt om man kollar noga
-				# 25 är himlar synbart randiga
-				# 10-15 pajar ansikten på 160x120
-				# 5 är fruktansvärt
-
-				$return2 = exec(MAGICK_PATH.'convert '.escapeshellarg($targetfile).' -quality 75 -auto-orient -strip -sample 320x240 '.escapeshellarg($thumbfile), $output, $return);
-
-				if (!file_exists($thumbfile)) {
-					$errors[] = t('Failed creating thumbnail').': '.$thumbfile.'. Command output was: '.implode("\n", $output).$return2.$return;
+				case UPLOAD_ERR_FORM_SIZE:
+					$errors[] = t('Exceeded filesize limit in form.');
 					$view = 'edit_item';
 					break;
-				}
-				# upload complete
 
-				break;
-			case UPLOAD_ERR_NO_FILE:
-				# no file uploaded, that is ok
-				break;
-			case UPLOAD_ERR_INI_SIZE:
-				$errors[] = t('Exceeded filesize limit in ini setting.');
-				$view = 'edit_item';
-				break;
-			case UPLOAD_ERR_FORM_SIZE:
-				$errors[] = t('Exceeded filesize limit in form.');
-				$view = 'edit_item';
-				break;
-
-			default:
-				$errors[] = t('Unknown error.');
-				$view = 'edit_item';
-				break;
+				default:
+					$errors[] = t('Unknown error.');
+					$view = 'edit_item';
+					break;
+			}
 		}
 
 		switch ($view) {

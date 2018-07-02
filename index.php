@@ -50,6 +50,7 @@
 	# 2018-06-26 16:04:00 - adding error handling
 	# 2018-06-27 14:51:00 - adding translations json array
 	# 2018-06-27 18:14:00 - updating jquery from version 2.1.1 to 3.3.1, removing editusers array check, updating formatting
+	# 2018-07-02 19:30:00 - bugfix, image upload was disabled
 
 	# get required functionality
 	require_once('include/functions.php');
@@ -362,7 +363,7 @@
 			</div>
 			<div class="row">
 				<label for="file"><?php echo t('JPEG image') ?></label>
-<?php		if (!file_exists(MAGICK_PATH.'convert')) { ?>
+<?php		if (file_exists(MAGICK_PATH.'convert')) { ?>
 				<input class="file" type="file" name="file">
 <?php		} else { ?>
 				<span class="value"><?php echo t('ImageMagick is not installed, please install it to enable image uploads.'); ?></span>
@@ -872,7 +873,8 @@
 				</tr>
 <?php
 			} # eof-foreach-items
-			reset($items);
+
+			if (isset($items) && is_array($items)) reset($items);
 ?>
 			</tbody>
 		</table>
