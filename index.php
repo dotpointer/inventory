@@ -53,10 +53,11 @@
   # 2018-07-02 19:30:00 - bugfix, image upload was disabled
   # 2018-07-16 16:52:44
   # 2018-07-19 18:00:02 - indentation change, tab to 2 spaces
+  # 2018-12-20 18:42:00 - moving translation to Base translate
 
   # get required functionality
   require_once('include/functions.php');
-  start_translations();
+  start_translations(dirname(__FILE__).'/include/locales/');
 
   init_constants();
 
