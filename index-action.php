@@ -34,6 +34,7 @@
 # 2018-07-16 16:52:36
 # 2018-07-19 18:00:02 - indentation change, tab to 2 spaces
 # 2019-02-27 18:35:00 - bugfixes, packlist criteria relation additions missed user id, packlist item relations were undeleteable
+# 2019-02-27 19:12:00 - bugfix, packlist item relation additions were missing user id
 
 if (!isset($action)) die();
 
@@ -1324,16 +1325,18 @@ switch ($action) {
       die();
     }
 
-    # delete packlist relations
+    # insert packlist relation
     $sql = '
       INSERT INTO
         relations_packlists_items
       (
         id_packlists,
-        id_items
+        id_items,
+        id_users
       ) VALUES(
         "'.dbres($link, $id_packlists).'",
-        "'.dbres($link, $id_items).'"
+        "'.dbres($link, $id_items).'",
+        "'.dbres($link, get_logged_in_user('id')).'"
       )';
     $r = db_query($link, $sql);
 

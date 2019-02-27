@@ -55,6 +55,7 @@
   # 2018-07-19 18:00:02 - indentation change, tab to 2 spaces
   # 2018-12-20 18:42:00 - moving translation to Base translate
   # 2019-02-27 18:35:00 - adding from and to dates to packlist view
+  # 2019-02-27 19:12:00 - adding json error output
 
   # get required functionality
   require_once('include/functions.php');
@@ -80,6 +81,7 @@
   $description = isset($_REQUEST['description']) ? $_REQUEST['description'] : false;
   $disposed = isset($_REQUEST['disposed']) ? $_REQUEST['disposed'] : false;
   $find = isset($_REQUEST['find']) ? $_REQUEST['find'] : false;
+  $format = isset($_REQUEST['format']) ? $_REQUEST['format'] : false;
   $from = isset($_REQUEST['from']) ? $_REQUEST['from'] : false;
   $id_categories_find = isset($_REQUEST['id_categories_find']) ? $_REQUEST['id_categories_find'] : false;
   $id_categories = isset($_REQUEST['id_categories']) ? $_REQUEST['id_categories'] : false;
@@ -123,6 +125,19 @@
 
   # view management
   require_once('index-view.php');
+
+  # if json
+  if ($format === 'json') {
+    if (count($errors)) {
+      die(json_encode(array(
+        'status' => false,
+        'data' => array(
+          'errors' => $errors
+        )
+      )));
+    }
+    die();
+  }
 ?><html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />

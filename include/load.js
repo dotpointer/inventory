@@ -189,13 +189,13 @@
 
         $('form.form_add_item_to_packlist').on('submit', (e) => {
           $.postJSON("?action=insert_update_relations_packlists_items&format=json", {
-            id_items: $(this).find('input[name="id_items"]').val(),
-            id_packlists: $(this).find('select:first').val()
+            id_items: $(e.target).find('input[name="id_items"]').val(),
+            id_packlists: $(e.target).find('select:first').val()
           }, (data) => {
             // when done, show result list, forward result data
-            $(this).find('.status').remove();
+            $(e.target).find('.status').remove();
 
-            $(this).find('input[type="submit"]:first').after(
+            $(e.target).find('input[type="submit"]:first').after(
               $('<span>')
                 .addClass('status')
                 .text('Tillagd')
@@ -208,13 +208,13 @@
 
         $('form.form_add_item_to_criteria').on('submit', (e) => {
           $.postJSON("?action=insert_update_relations_criterias_items&format=json", {
-            id_items: $(this).find('input[name="id_items"]').val(),
-            id_criterias: $(this).find('select:first').val()
+            id_items: $(e.target).find('input[name="id_items"]').val(),
+            id_criterias: $(e.target).find('select:first').val()
           }, (data) => {
             // when done, show result list, forward result data
-            $(this).find('.status').remove();
+            $(e.target).find('.status').remove();
 
-            $(this).find('input[type="submit"]:first').after(
+            $(e.target).find('input[type="submit"]:first').after(
               $('<span>')
                 .addClass('status')
                 .text('Tillagd')
@@ -230,25 +230,25 @@
 
         $('table input[type="checkbox"]').on('change', (e) => {
 
-          if ($(this).prop('checked')) {
-            $(this).parent('td').removeClass('unpacked').addClass('packed');
+          if ($(e.target).prop('checked')) {
+            $(e.target).parent('td').removeClass('unpacked').addClass('packed');
           } else {
-            $(this).parent('td').removeClass('packed').addClass('unpacked');
+            $(e.target).parent('td').removeClass('packed').addClass('unpacked');
           }
 
-          if ($(this).attr('data-packlist-item') === '0') {
+          if ($(e.target).attr('data-packlist-item') === '0') {
             $.getJSON(".", {
               action: 'update_relations_packlists_items_packed',
               format: 'json',
-              id_relations_packlists_items: $(this).attr('data-id-relations-packlists-items'),
-              packed: $(this).prop('checked') ? 1 : 0
+              id_relations_packlists_items: $(e.target).attr('data-id-relations-packlists-items'),
+              packed: $(e.target).prop('checked') ? 1 : 0
             });
           } else {
             $.getJSON(".", {
               action: 'update_packlist_items_packed',
               format: 'json',
-              id_packlist_items: $(this).attr('data-id-packlist-items'),
-              packed: $(this).prop('checked') ? 1 : 0
+              id_packlist_items: $(e.target).attr('data-id-packlist-items'),
+              packed: $(e.target).prop('checked') ? 1 : 0
             });
           }
 
@@ -257,28 +257,28 @@
         });
 
         $('table select').on('change', (e) => {
-          if ($(this).attr('data-packlist-item') === '0') {
+          if ($(e.target).attr('data-packlist-item') === '0') {
             $.getJSON(".", {
               action: 'update_relations_packlists_items_inuse',
               format: 'json',
-              id_relations_packlists_items: $(this).attr('data-id-relations-packlists-items'),
-              inuse: $(this).val()
+              id_relations_packlists_items: $(e.target).attr('data-id-relations-packlists-items'),
+              inuse: $(e.target).val()
             });
           } else {
             $.getJSON(".", {
               action: 'update_packlist_items_inuse',
               format: 'json',
-              id_packlist_items: $(this).attr('data-id-packlist-items'),
-              inuse: $(this).val()
+              id_packlist_items: $(e.target).attr('data-id-packlist-items'),
+              inuse: $(e.target).val()
             });
           }
         });
 
         $('.edit_packlist_item').on('click', (e) => {
-          $('form input[name="title"]').val($(this).attr('data-title'));
-          $('form input[name="weight"]').val($(this).attr('data-weight'));
-          $('#span_id_packlist_items').text($(this).attr('data-id-packlist-items'));
-          $('form input[name="id_packlist_items"]').val($(this).attr('data-id-packlist-items'));
+          $('form input[name="title"]').val($(e.target).attr('data-title'));
+          $('form input[name="weight"]').val($(e.target).attr('data-weight'));
+          $('#span_id_packlist_items').text($(e.target).attr('data-id-packlist-items'));
+          $('form input[name="id_packlist_items"]').val($(e.target).attr('data-id-packlist-items'));
           e.preventDefault();
           return false;
         });
@@ -296,13 +296,13 @@
 
         $('#form_update_packlist_notes').on('submit', (e) => {
           $.postJSON("?action=update_packlist_notes&format=json", {
-            id_packlists: $(this).find('input[name="id_packlists"]').val(),
-            notes: $(this).find('textarea[name="notes"]').val()
+            id_packlists: $(e.target).find('input[name="id_packlists"]').val(),
+            notes: $(e.target).find('textarea[name="notes"]').val()
           }, (data) => {
             // when done, show result list, forward result data
-            $(this).find('.status').remove();
+            $(e.target).find('.status').remove();
 
-            $(this).find('input[type="submit"]:first').after(
+            $(e.target).find('input[type="submit"]:first').after(
               $('<span>')
                 .addClass('status')
                 .text(i.t('Saved'))
