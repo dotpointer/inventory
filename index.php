@@ -54,6 +54,7 @@
   # 2018-07-16 16:52:44
   # 2018-07-19 18:00:02 - indentation change, tab to 2 spaces
   # 2018-12-20 18:42:00 - moving translation to Base translate
+  # 2019-02-27 18:35:00 - adding from and to dates to packlist view
 
   # get required functionality
   require_once('include/functions.php');
@@ -1163,11 +1164,18 @@
         break;
       }
 ?>
-    <h2><?php echo t('Packlist') ?> <?php echo $packlist['title']; ?> <a href="?view=edit_packlist&amp;id_packlists=<?php echo $packlist['id']; ?>"><?php echo t('Edit') ?></a></div></h2>
+    <h2>
+      <?php echo t('Packlist') ?> <?php echo $packlist['title']; ?>
+      <div class="action">
+        <a href="?view=edit_packlist&amp;id_packlists=<?php echo $packlist['id']; ?>"><?php echo t('Edit') ?></a>
+      </div>
+    </h2>
+    <p>
+      <?php echo date('Y-m-d', strtotime($packlist['from'])); ?> - <?php echo date('Y-m-d', strtotime($packlist['to'])); ?>
+    </p>
 <?php
     if ($criterias) {
 ?>
-    <br>
     <h3><?php echo t('Criterias') ?></h3>
     <ul>
 <?php
@@ -1179,7 +1187,8 @@
 
           # are there missing items in the packlist
           if ($criteria['missing_items']) {
-            ?><br>
+?>
+            <br>
             <span class="warning"><?php echo t('The following is missing in the packlist') ?>:</span>
             <?php
 

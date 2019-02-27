@@ -24,7 +24,7 @@
 # 2018-03-15 00:47:00 - adding criteria handling continued
 # 2018-04-08 12:08:55 - adding location history
 # 2018-04-09 12:10:00 - cleanup
-# 2018-04-11 13:39:00 - bug fix, correction for location query parameter that was used in actions
+# 2018-04-11 13:39:00 - bugfix, correction for location query parameter that was used in actions
 # 2018-04-13 23:49:00 - adding packlist notes
 # 2018-06-24 17:58:00 - adding local login
 # 2018-06-25 18:58:00 - adding local user management and multi user support
@@ -33,6 +33,7 @@
 # 2018-07-02 19:31:00 - bugfix, image upload was not checked
 # 2018-07-16 16:52:36
 # 2018-07-19 18:00:02 - indentation change, tab to 2 spaces
+# 2019-02-27 18:35:00 - bugfixes, packlist criteria relation additions missed user id, packlist item relations were undeleteable
 
 if (!isset($action)) die();
 
@@ -103,7 +104,6 @@ if (isset($editusers)) {
           ';
         db_query($link, $sql);
       }
-      # echo $sql."\n";
     }
     $errors[] = t('Users noted in the user editing array has been created and updated. Please comment out the array in the setup file when done with it, otherwise this will continue to override user settings made on the site.');
   } else {
@@ -1220,6 +1220,7 @@ switch ($action) {
         $iu = array(
           'id_criterias' => $v['id'],
           'id_packlists' => $id_packlists,
+          'id_users' => get_logged_in_user('id'),
           'created' => date('Y-m-d H:i:s')
         );
         $iu = dbpia($link, $iu);
@@ -1685,9 +1686,12 @@ switch ($action) {
       SELECT
         id
       FROM
-        criterias
+        relations_packlists_items
       WHERE
-        id="'.dbres($link, $id_relations_packlists_items).'" AND id_users="'.dbres($link, get_logged_in_user('id')).'"';
+        id="'.dbres($link, $id_relations_packlists_items).'"
+        AND id_users="'.dbres($link, get_logged_in_user('id')).'"
+    ';
+
     if (!count(db_query($link, $sql))) {
       $errors[] = t('Could not find the relation, maybe this is not yours.');
       $view = 'packlists';
