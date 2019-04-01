@@ -35,6 +35,7 @@
 # 2018-07-19 18:00:02 - indentation change, tab to 2 spaces
 # 2019-02-27 18:35:00 - bugfixes, packlist criteria relation additions missed user id, packlist item relations were undeleteable
 # 2019-02-27 19:12:00 - bugfix, packlist item relation additions were missing user id
+# 2019-04-01 23:23:00 - bugfix, usage status on packlist items could not be changed
 
 if (!isset($action)) die();
 
@@ -1906,7 +1907,7 @@ switch ($action) {
       FROM
         packlist_items
       WHERE
-        id="'.dbres($link, $id_packlists_items).'" AND
+        id="'.dbres($link, $id_packlist_items).'" AND
         id_users="'.dbres($link, get_logged_in_user('id')).'"
       ';
     if (!count(db_query($link, $sql))) {
@@ -1953,7 +1954,7 @@ switch ($action) {
       FROM
         packlist_items
       WHERE
-        id="'.dbres($link, $id_packlists_items).'" AND
+        id="'.dbres($link, $id_packlist_items).'" AND
         id_users="'.dbres($link, get_logged_in_user('id')).'"
       ';
     if (!count(db_query($link, $sql))) {
@@ -2000,7 +2001,7 @@ switch ($action) {
       FROM
         packlist_items
       WHERE
-        id="'.dbres($link, $id_packlists_items).'" AND
+        id="'.dbres($link, $id_packlist_items).'" AND
         id_users="'.dbres($link, get_logged_in_user('id')).'"
       ';
     if (!count(db_query($link, $sql))) {
