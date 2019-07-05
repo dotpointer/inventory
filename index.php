@@ -56,6 +56,7 @@
   # 2018-12-20 18:42:00 - moving translation to Base translate
   # 2019-02-27 18:35:00 - adding from and to dates to packlist view
   # 2019-02-27 19:12:00 - adding json error output
+  # 2019-04-04 18:40:32 - mobile mode changes
 
   # get required functionality
   require_once('include/functions.php');
@@ -163,14 +164,14 @@
   if (is_logged_in()) {
 ?>
   <ul class="menu">
-    <li><a href="?view=index"><?php echo t('Inventory') ?></a></li>
+    <li class="menuitem"><a href="?view=index"><?php echo t('Inventory') ?></a></li>
 <?php 		if (is_logged_in()) { ?>
-    <li><a href="?view=categories"><?php echo t('Categories') ?></a></li>
-    <li><a href="?view=locations"><?php echo t('Locations') ?></a></li>
-    <li><a href="?view=edit_item"><?php echo t('New') ?></a></li>
-    <li><a href="?view=packlists"><?php echo t('Packlists') ?></a></li>
-    <li><a href="?view=users"><?php echo t('Users') ?></a></li>
-    <li><a href="?action=logout&amp;view=login"><?php echo t('Logout') ?></a></li>
+    <li class="menuitem"><a href="?view=categories"><?php echo t('Categories') ?></a></li>
+    <li class="menuitem"><a href="?view=locations"><?php echo t('Locations') ?></a></li>
+    <li class="menuitem"><a href="?view=edit_item"><?php echo t('New') ?></a></li>
+    <li class="menuitem"><a href="?view=packlists"><?php echo t('Packlists') ?></a></li>
+    <li class="menuitem"><a href="?view=users"><?php echo t('Users') ?></a></li>
+    <li class="menuitem"><a href="?action=logout&amp;view=login"><?php echo t('Logout') ?></a></li>
 
     <li>
       <form action="?" method="post">

@@ -54,6 +54,15 @@ form fieldset textarea {
   padding: 2px 5px 2px 5px;
 }
 
+@media only screen and (min-device-width: 320px) and (max-device-width: 480px), only screen and (min-device-width : 480px) and (max-device-width : 800px), only screen and (max-width: 500px) {
+  form fieldset input.text {
+    width: auto;
+  }
+  form fieldset textarea {
+    width: auto;
+  }
+}
+
 form fieldset input.submit {
   margin-left: 250px;
 }
@@ -169,6 +178,7 @@ ul.menu li {
 }
 
 ul li a {
+  display: inline-block;
   color: #fff;
 }
 
@@ -176,6 +186,23 @@ ul.menu li a {
   padding-top: 5px;
   display: inline-block;
   font-size: 16px;
+}
+
+@media only screen and (min-device-width: 320px) and (max-device-width: 480px), only screen and (min-device-width : 480px) and (max-device-width : 800px), only screen and (max-width: 500px) {
+  ul.menu li.menuitem {
+    margin-left: 0px;
+    margin-right: 0px;
+    letter-spacing: -1px;
+    border: 1px solid #fff;
+  }
+  ul.menu li.menuitem a {
+    padding-left: 3px;
+    padding-right: 3px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 75px;
+  }
 }
 
 ul.menu li form {

@@ -36,6 +36,7 @@
 # 2019-02-27 18:35:00 - bugfixes, packlist criteria relation additions missed user id, packlist item relations were undeleteable
 # 2019-02-27 19:12:00 - bugfix, packlist item relation additions were missing user id
 # 2019-04-01 23:23:00 - bugfix, usage status on packlist items could not be changed
+# 2019-07-05 19:24:00 - bugfix, packed status could not be set on relations between packlists and items
 
 if (!isset($action)) die();
 
@@ -1950,12 +1951,14 @@ switch ($action) {
     # make sure it belongs to this user
     $sql = '
       SELECT
-        id
+        i.id
       FROM
-        packlist_items
+        items AS i,
+        relations_packlists_items AS rpi
       WHERE
-        id="'.dbres($link, $id_packlist_items).'" AND
-        id_users="'.dbres($link, get_logged_in_user('id')).'"
+        rpi.id_items = i.id AND
+        rpi.id="'.dbres($link, $id_relations_packlists_items).'" AND
+        i.id_users="'.dbres($link, get_logged_in_user('id')).'"
       ';
     if (!count(db_query($link, $sql))) {
       $errors[] = t('Could not find the packlist item, maybe this is not yours.');
