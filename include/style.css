@@ -352,11 +352,13 @@ table tbody tr td.image {
   text-align: center;
 }
 
-table tbody tr td.unpacked {
+table tbody tr td.packstatus.unpacked,
+table tbody tr td.unpackstatus.packed {
   background-color: #400;
 }
 
-table tbody tr td.packed {
+table tbody tr td.packstatus.packed,
+table tbody tr td.unpackstatus.unpacked {
   background-color: #040;
 }
 

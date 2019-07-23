@@ -228,7 +228,7 @@
         break;
       case 'packlist':
 
-        $('table input[type="checkbox"]').on('change', (e) => {
+        $('table .packstatus input[type="checkbox"]').on('change', (e) => {
 
           if ($(e.target).prop('checked')) {
             $(e.target).parent('td').removeClass('unpacked').addClass('packed');
@@ -249,6 +249,34 @@
               format: 'json',
               id_packlist_items: $(e.target).attr('data-id-packlist-items'),
               packed: $(e.target).prop('checked') ? 1 : 0
+            });
+          }
+
+          e.preventDefault();
+          return false;
+        });
+
+        $('table .unpackstatus input[type="checkbox"]').on('change', (e) => {
+
+          if ($(e.target).prop('checked')) {
+            $(e.target).parent('td').removeClass('packed').addClass('unpacked');
+          } else {
+            $(e.target).parent('td').removeClass('unpacked').addClass('packed');
+          }
+
+          if ($(e.target).attr('data-packlist-item') === '0') {
+            $.getJSON(".", {
+              action: 'update_relations_packlists_items_unpacked',
+              format: 'json',
+              id_relations_packlists_items: $(e.target).attr('data-id-relations-packlists-items'),
+              unpacked: $(e.target).prop('checked') ? 1 : 0
+            });
+          } else {
+            $.getJSON(".", {
+              action: 'update_packlist_items_unpacked',
+              format: 'json',
+              id_packlist_items: $(e.target).attr('data-id-packlist-items'),
+              unpacked: $(e.target).prop('checked') ? 1 : 0
             });
           }
 

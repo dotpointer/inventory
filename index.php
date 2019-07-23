@@ -57,6 +57,7 @@
   # 2019-02-27 18:35:00 - adding from and to dates to packlist view
   # 2019-02-27 19:12:00 - adding json error output
   # 2019-04-04 18:40:32 - mobile mode changes
+  # 2019-07-23 20:15:00 - adding unpacked status
 
   # get required functionality
   require_once('include/functions.php');
@@ -113,6 +114,7 @@
   $title = isset($_REQUEST['title']) ? $_REQUEST['title'] : false;
   $to = isset($_REQUEST['to']) ? $_REQUEST['to'] : false;
   $type = isset($_REQUEST['type']) ? $_REQUEST['type'] : false;
+  $unpacked = isset($_REQUEST['unpacked']) ? $_REQUEST['unpacked'] : false;
   $watt = isset($_REQUEST['watt']) ? $_REQUEST['watt'] : false;
   $watt_max = isset($_REQUEST['watt_max']) ? $_REQUEST['watt_max'] : false;
   $weight = isset($_REQUEST['weight']) ? $_REQUEST['weight'] : false;
@@ -1243,6 +1245,9 @@
       <thead>
         <tr>
           <th><?php echo t('Packed') ?></th>
+<?php if (strtotime($packlist['to']) < time()) { ?>
+          <th><?php echo t('Unpacked') ?></th>
+<?php } ?>
           <th><?php echo t('Object') ?></th>
           <th><?php echo t('Usage') ?></th>
           <th><?php echo t('Weight') ?></th>
@@ -1270,7 +1275,7 @@
       foreach ($items as $k => $v) {
 ?>
         <tr>
-          <td class="<?php echo (int)$v['packed'] ? 'packed' : 'unpacked'?>">
+          <td class="packstatus <?php echo (int)$v['packed'] ? 'packed' : 'unpacked'?>">
             <input
               data-packlist-item="<?php echo (int)$v['packlist_item']?>"
 <?php
@@ -1285,6 +1290,24 @@
               type="checkbox"
               value="1"<?php echo (int)$v['packed'] ? ' checked' : ''?>>
           </td>
+
+<?php if (strtotime($packlist['to']) < time()) { ?>
+          <td class="unpackstatus <?php echo (int)$v['unpacked'] ? 'unpacked' : 'packed'?>">
+            <input
+              data-packlist-item="<?php echo (int)$v['packlist_item']?>"
+<?php
+        if (!(int)$v['packlist_item']) {
+?>
+              data-id-relations-packlists-items="<?php echo (int)$v['id_relations_packlists_items']?>"
+<?php
+        } else {
+?>
+              data-id-packlist-items="<?php echo (int)$v['id_packlist_items']?>"
+<?php			} ?>
+              type="checkbox"
+              value="1"<?php echo (int)$v['unpacked'] ? ' checked' : ''?>>
+          </td>
+<?php } ?>
           <td>
 <?php
         if (!(int)$v['packlist_item']) { ?>

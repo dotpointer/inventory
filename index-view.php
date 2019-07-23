@@ -33,6 +33,7 @@
 # 2018-06-26 16:04:00 - adding error handling
 # 2018-06-27 18:12:00 - bugfixes in sql queries
 # 2018-07-19 18:00:02 - indentation change, tab to 2 spaces
+# 2019-07-23 20:15:00 - adding unpacked status
 
 if (!isset($view)) die();
 
@@ -934,6 +935,7 @@ switch ($view) {
         i.weight,
         0 AS packlist_item,
         rpi.packed,
+        rpi.unpacked,
         rpi.inuse
       FROM
         items as i,
@@ -955,6 +957,7 @@ switch ($view) {
         weight,
         1 AS packlist_item,
         packed,
+        unpacked,
         inuse
       FROM
         packlist_items
