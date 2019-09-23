@@ -34,6 +34,7 @@
 # 2018-06-27 18:12:00 - bugfixes in sql queries
 # 2018-07-19 18:00:02 - indentation change, tab to 2 spaces
 # 2019-07-23 20:15:00 - adding unpacked status
+# 2019-09-23 22:18:00 - bugfix, categories and locations missed user id, adding searchable fields
 
 if (!isset($view)) die();
 
@@ -618,7 +619,7 @@ switch ($view) {
       # walk those words
       foreach ($findwords as $k => $v) {
         # check this word against title, description etc.
-        $where[] = ' (LOWER(i.title) LIKE "%'.dbres($link, strtolower($v)).'%" OR LOWER(i.description) LIKE "%'.dbres($link, strtolower($v)).'%")';
+        $where[] = ' (LOWER(i.title) LIKE "%'.dbres($link, strtolower($v)).'%" OR LOWER(i.description) LIKE "%'.dbres($link, strtolower($v)).'%" OR LOWER(i.source) LIKE "%'.dbres($link, strtolower($v)).'%")';
       }
     }
 

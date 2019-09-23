@@ -38,6 +38,7 @@
 # 2019-04-01 23:23:00 - bugfix, usage status on packlist items could not be changed
 # 2019-07-05 19:24:00 - bugfix, packed status could not be set on relations between packlists and items
 # 2019-07-23 20:15:00 - adding unpacked status
+# 2019-09-23 22:18:00 - bugfix, categories and locations missed user id
 
 if (!isset($action)) die();
 
@@ -661,56 +662,13 @@ switch ($action) {
       } else {
         $sql = '
           INSERT INTO categories (
-            title
-          ) VALUES(
-            "'.dbres($link, $category).'"
-          )';
-        db_query($link, $sql);		# try to get the locations of the item
-    $locations = db_query($link, '
-      SELECT
-        r.id AS id_relations_items_locations,
-        l.id AS id_locations,
-        l.title
-      FROM
-        relations_items_locations AS r,
-        locations AS l
-      WHERE
-        r.id_locations = l.id
-        AND
-        r.id_items="'.dbres($link, $id_items).'"
-      ');
-
-    foreach ($locations as $key => $value) {
-      $locations[$key] = $value['title'];
-    }
-    $locations = implode(', ', $locations);
-
-    # get last location history title
-    $sql = '
-      SELECT
-        title
-      FROM
-        location_history
-      WHERE
-        id_items="'.dbres($link, $id_items).'"
-      ORDER BY
-        id DESC
-      LIMIT 1';
-    $location_history = db_query($link, $sql);
-    if (!count($location_history) || $location_history[0]['title'] !== $locations) {
-        # then insert the relation
-        $sql = '
-          INSERT INTO location_history (
-            id_items,
             title,
-            created
+            id_users
           ) VALUES(
-            '.(int)$id_items.',
-            "'.dbres($link, $locations).'",
-            "'.date('Y-m-d H:i:s').'"
+            "'.dbres($link, $category).'",
+            "'.dbres($link, get_logged_in_user('id')).'"
           )';
-        $r = db_query($link, $sql);
-    }
+        db_query($link, $sql);
         $id_categories = db_insert_id($link);
         $category = false;
       }
@@ -738,7 +696,6 @@ switch ($action) {
       'id_categories' => $id_categories,
       'id_files' => $id_files,
       'inuse' => $inuse,
-      # 'location' => $location,
       'price' => $price,
       'source' => $source,
       'status' => $status,
@@ -831,7 +788,6 @@ switch ($action) {
         );
       }
 
-
       # get all matching relations based on id of location and item
       $sql = '
         SELECT
@@ -849,10 +805,12 @@ switch ($action) {
         $sql = '
           INSERT INTO relations_items_locations (
             id_items,
-            id_locations
+            id_locations,
+            id_users
           ) VALUES(
             '.(int)$id_items.',
-            '.(int)$loc['id'].'
+            '.(int)$loc['id'].',
+            "'.dbres($link, get_logged_in_user('id')).'"
           )';
         $r = db_query($link, $sql);
         $valid_id_relations_items_locations[] = db_insert_id($link);
@@ -2343,10 +2301,12 @@ switch ($action) {
           $sql = '
             INSERT INTO relations_items_locations (
               id_items,
-              id_locations
+              id_locations,
+              id_users
             ) VALUES(
               '.(int)$id_items.',
-              '.(int)$loc['id'].'
+              '.(int)$loc['id'].',
+              "'.dbres($link, get_logged_in_user('id')).'"
             )';
           $r = db_query($link, $sql);
           $valid_id_relations_items_locations[] = db_insert_id($link);
