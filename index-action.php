@@ -39,6 +39,7 @@
 # 2019-07-05 19:24:00 - bugfix, packed status could not be set on relations between packlists and items
 # 2019-07-23 20:15:00 - adding unpacked status
 # 2019-09-23 22:18:00 - bugfix, categories and locations missed user id
+# 2019-10-31 21:00:00 - enabling png support
 
 if (!isset($action)) die();
 
@@ -393,14 +394,13 @@ switch ($action) {
           if (false === $ext = array_search(
             $finfo->file($_FILES['file']['tmp_name']),
             array(
-              'jpg' => 'image/jpeg'
-              #,
-              #'png' => 'image/png',
+              'jpg' => 'image/jpeg',
+              'png' => 'image/png'
               #'gif' => 'image/gif',
             ),
             true
           )) {
-            $errors[] = t('Invalid file format.');
+            $errors[] = t('Invalid file format.').' MIME: '.$_FILES['file']['tmp_name'].'.';
             $view = 'edit_location';
             break;
           }
@@ -907,14 +907,13 @@ switch ($action) {
           if (false === $ext = array_search(
             $finfo->file($_FILES['file']['tmp_name']),
             array(
-              'jpg' => 'image/jpeg'
-              #,
-              #'png' => 'image/png',
+              'jpg' => 'image/jpeg',
+              'png' => 'image/png'
               #'gif' => 'image/gif',
             ),
             true
           )) {
-            $errors[] = t('Invalid file format.');
+            $errors[] = t('Invalid file format.').' MIME: '.$_FILES['file']['tmp_name'].'.';
             $view = 'edit_item';
             break;
           }
