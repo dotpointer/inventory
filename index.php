@@ -695,7 +695,7 @@
       <tbody>
 <?php 		foreach ($location_history as $k => $v) { ?>
         <tr>
-          <td><?php echo implode(json_decode($v['title']), ' / '); ?></td>
+          <td><?php echo implode(' / ', json_decode($v['title'])); ?></td>
           <td><?php echo $v['created']?></td>
         </tr>
 <?php		} ?>

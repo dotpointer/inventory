@@ -663,7 +663,7 @@ switch ($view) {
 
     # is there a where clause?
     if (count($where)) {
-      $sql .= ' WHERE '.implode($where, ' AND ');
+      $sql .= ' WHERE '.implode(' AND ', $where);
     }
 
     # run query

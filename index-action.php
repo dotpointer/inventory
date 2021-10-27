@@ -104,7 +104,7 @@ if (isset($editusers)) {
           UPDATE
             users
           SET
-            '.implode($iu, ',').'
+            '.implode(',', $iu).'
           WHERE
             id="'.dbres($link, $result[0]['id']).'"
           ';
@@ -223,7 +223,7 @@ switch ($action) {
         UPDATE
           categories
         SET
-          '.implode($iu, ',').'
+          '.implode(',', $iu).'
         WHERE
           id="'.dbres($link, $id_categories).'"
         ';
@@ -234,9 +234,9 @@ switch ($action) {
       $iu['id_users'] = get_logged_in_user('id');
       $sql = '
         INSERT INTO categories (
-          '.implode(array_keys($iu), ',').'
+          '.implode(',', array_keys($iu)).'
         ) VALUES(
-          '.implode($iu, ',').'
+          '.implode(',', $iu).'
         )';
       db_query($link, $sql);
       $id_categories = db_insert_id($link);
@@ -285,7 +285,7 @@ switch ($action) {
         UPDATE
           criterias
         SET
-          '.implode($iu, ',').'
+          '.implode(',', $iu).'
         WHERE
           id="'.dbres($link, $id_criterias).'"
         ';
@@ -298,9 +298,9 @@ switch ($action) {
       $iu = dbpia($link, $iu);
       $sql = '
         INSERT INTO criterias (
-          '.implode(array_keys($iu), ',').'
+          '.implode(',', array_keys($iu)).'
         ) VALUES(
-          '.implode($iu, ',').'
+          '.implode(',', $iu).'
         )';
       db_query($link, $sql);
       $id_criterias = db_insert_id($link);
@@ -347,7 +347,7 @@ switch ($action) {
         UPDATE
           locations
         SET
-          '.implode($iu, ',').'
+          '.implode(',', $iu).'
         WHERE
           id="'.dbres($link, $id_locations).'"
         ';
@@ -358,9 +358,9 @@ switch ($action) {
       $iu = dbpia($link, $iu);
       $sql = '
         INSERT INTO locations (
-          '.implode(array_keys($iu), ',').'
+          '.implode(',', array_keys($iu)).'
         ) VALUES(
-          '.implode($iu, ',').'
+          '.implode(',', $iu).'
         )';
       db_query($link, $sql);
       $id_locations = db_insert_id($link);
@@ -390,17 +390,17 @@ switch ($action) {
           }
 
           # mime check - do not trust $_FILES mime value
-          $finfo = new finfo(FILEINFO_MIME_TYPE);
           if (false === $ext = array_search(
-            $finfo->file($_FILES['file']['tmp_name']),
+            mime_content_type($_FILES['file']['tmp_name']),
             array(
               'jpg' => 'image/jpeg',
-              'png' => 'image/png'
+              'png' => 'image/png',
+              'webp' => 'image/webp'
               #'gif' => 'image/gif',
             ),
             true
           )) {
-            $errors[] = t('Invalid file format.').' MIME: '.$_FILES['file']['tmp_name'].'.';
+            $errors[] = t('Invalid file format.').' MIME: '.mime_content_type($_FILES['file']['tmp_name']).'.';
             $view = 'edit_location';
             break;
           }
@@ -729,7 +729,7 @@ switch ($action) {
         UPDATE
           items
         SET
-          '.implode($iu, ',').'
+          '.implode(',', $iu).'
         WHERE
           id="'.dbres($link, $id_items).'"
         ';
@@ -740,7 +740,7 @@ switch ($action) {
       $iu['created'] = date('Y-m-d H:i:s');
       $iu['id_users'] = get_logged_in_user('id');
       $iu = dbpia($link, $iu);
-      $sql = 'INSERT INTO items ('.implode(array_keys($iu), ',').') VALUES('.implode($iu, ',').')';
+      $sql = 'INSERT INTO items ('.implode(',', array_keys($iu)).') VALUES('.implode(',', $iu).')';
       db_query($link, $sql);
       $id_items = db_insert_id($link);
     }
@@ -903,12 +903,12 @@ switch ($action) {
           }
 
           # mime check - do not trust $_FILES mime value
-          $finfo = new finfo(FILEINFO_MIME_TYPE);
           if (false === $ext = array_search(
-            $finfo->file($_FILES['file']['tmp_name']),
+            mime_content_type($_FILES['file']['tmp_name']),
             array(
               'jpg' => 'image/jpeg',
-              'png' => 'image/png'
+              'png' => 'image/png',
+              'webp' => 'image/webp'
               #'gif' => 'image/gif',
             ),
             true
@@ -1119,7 +1119,7 @@ switch ($action) {
         UPDATE
           packlists
         SET
-          '.implode($iu, ',').'
+          '.implode(',', $iu).'
         WHERE
           id="'.dbres($link, $id_packlists).'"
         ';
@@ -1132,9 +1132,9 @@ switch ($action) {
       $iu = dbpia($link, $iu);
       $sql = '
         INSERT INTO packlists (
-          '.implode(array_keys($iu), ',').'
+          '.implode(',', array_keys($iu)).'
         ) VALUES(
-          '.implode($iu, ',').'
+          '.implode(',', $iu).'
         )';
       db_query($link, $sql);
       $id_packlists = db_insert_id($link);
@@ -1156,7 +1156,7 @@ switch ($action) {
           relations_criterias_packlists
         WHERE
           id_packlists="'.dbres($link, $id_packlists).'"
-          '.(count($id_criterias) ? 'AND id_criterias NOT IN ('.implode($id_criterias, ',').')' : '');
+          '.(count($id_criterias) ? 'AND id_criterias NOT IN ('.implode(',', $id_criterias).')' : '');
     db_query($link, $sql);
 
     # are there any criterias to add?
@@ -1165,7 +1165,7 @@ switch ($action) {
       $sql = 'SELECT
             id
           FROM
-            criterias WHERE id IN ('.implode($id_criterias, ',').')
+            criterias WHERE id IN ('.implode(',', $id_criterias).')
             AND id NOT IN (
               SELECT
                 id_criterias
@@ -1187,9 +1187,9 @@ switch ($action) {
         $iu = dbpia($link, $iu);
         $sql = '
           INSERT INTO relations_criterias_packlists (
-            '.implode(array_keys($iu), ',').'
+            '.implode(',', array_keys($iu)).'
           ) VALUES(
-            '.implode($iu, ',').'
+            '.implode(',', $iu).'
           )';
         db_query($link, $sql);
       }
@@ -1338,7 +1338,7 @@ switch ($action) {
       UPDATE
         packlists
       SET
-        '.implode($iu, ',').'
+        '.implode(',', $iu).'
       WHERE
         id="'.dbres($link, $id_packlists).'"
       ';
@@ -1382,7 +1382,7 @@ switch ($action) {
       UPDATE
         relations_packlists_items
       SET
-        '.implode($iu, ',').'
+        '.implode(',', $iu).'
       WHERE
         id="'.dbres($link, $id_relations_packlists_items).'"
       ';
@@ -1464,7 +1464,7 @@ switch ($action) {
         UPDATE
           users
         SET
-          '.implode($iu, ',').'
+          '.implode(',', $iu).'
         WHERE
           id="'.dbres($link, $id_users).'"
         ';
@@ -1490,9 +1490,9 @@ switch ($action) {
       $iu = dbpia($link, $iu);
       $sql = '
         INSERT INTO users (
-          '.implode(array_keys($iu), ',').'
+          '.implode(',', array_keys($iu)).'
         ) VALUES(
-          '.implode($iu, ',').'
+          '.implode(',', $iu).'
         )';
       db_query($link, $sql);
       $id_users = db_insert_id($link);
