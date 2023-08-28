@@ -35,6 +35,7 @@
   # 2018-06-27 18:09:00 - bugfix, database name was set in the file, adding setup info
   # 2018-07-19 18:00:01 - indentation change, tab to 2 spaces
   # 2018-12-20 18:42:00 - moving translation to Base translate
+  # 2023-08-28 17:31:00 - updating visum url
 
   define('SITE_SHORTNAME', 'inventory');
 
@@ -208,7 +209,7 @@
     if (defined('ID_VISUM') && constant('ID_VISUM') !== false) {
 ?>
   <p class="login">
-    <a href="http://www.<?php echo BASE_DOMAINNAME?>/?section=visum&id_sites=<?php echo ID_VISUM?>"><?php echo t('Login with Visum here.') ?><a/>
+    <a href="//<?php echo BASE_DOMAINNAME?>/?section=visum&id_sites=<?php echo ID_VISUM?>"><?php echo t('Login with Visum here.') ?><a/>
   </p>
 <?php
     }
